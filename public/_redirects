@@ -1,0 +1,6 @@
+# Same-project redirects only. Cross-domain redirects (akl.io, adamloghry.com → akl.dev) are zone Redirect Rules — see docs/runbook.md.
+/index.html     /     301
+/index          /     301
+# akl@akl.dev → the Mastodon account. One account, so every webfinger query maps to it.
+# Live-check AC-LIVE-16: if Pages appends the incoming query (duplicate resource=), move this to a zone Redirect Rule.
+/.well-known/webfinger  https://hachyderm.io/.well-known/webfinger?resource=acct:akl@hachyderm.io  302

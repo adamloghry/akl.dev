@@ -1,0 +1,15 @@
+/* TEAM */
+    Owner: Adam K. Loghry
+    Site: akl.dev
+    Contact: akl@akl.io
+    Location: Seattle, WA, USA
+
+/* THANKS */
+    Nobody but the trees.
+
+/* SITE */
+    Standards: HTML5, CSS custom properties, SVG, ES modules
+    Components: Astro, @fontsource/ibm-plex-mono, @astrojs/sitemap
+    Hosting: Cloudflare Pages
+    Fonts: IBM Plex Mono (self-hosted)
+    Forest: generated per visit from a seeded PRNG

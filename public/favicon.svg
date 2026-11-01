@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>path{stroke:#4c5440}@media (prefers-color-scheme:dark){path{stroke:#a39e94}}</style>
+  <path fill="none" stroke-width="1.6" stroke-linecap="round" d="M16 30V4 M16 9l-3 3M16 9l3 3 M16 14l-5 4M16 14l5 4 M16 19l-7 5M16 19l7 5 M16 24l-8 5M16 24l8 5"/>
+</svg>

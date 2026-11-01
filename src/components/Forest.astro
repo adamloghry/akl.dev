@@ -1,0 +1,52 @@
+---
+// Forest.astro — the fixed, behind-the-text stand. All visuals are CSS; geometry comes from forest.js at runtime.
+// The seed is random per visit by design (the owner likes every load to be a different stand).
+// Query overrides for QA: ?seed=N  ?rain=on|off  ?moon=on|off
+---
+<svg class="moon" id="moon" viewBox="0 0 40 40" aria-hidden="true">
+  <path d="M20 4 A16 16 0 1 0 20 36 A12.5 12.5 0 1 1 20 4 Z" fill="none" stroke="currentColor" stroke-width="0.9" stroke-linejoin="round"></path>
+</svg>
+
+<div class="forest" id="forest" aria-hidden="true">
+  <div class="stand" id="stand"></div>
+  <div class="rain" id="rain"></div>
+</div>
+
+<script>
+  import { buildForest, buildRain, fitStand, seattleNow, wxRain, wxNight, randomSeed } from '../scripts/forest.js';
+
+  const q = new URLSearchParams(location.search);
+  const now = seattleNow();
+  const rainOn = q.has('rain') ? q.get('rain') !== 'off' : wxRain(now);
+  const night  = q.has('moon') ? q.get('moon') !== 'off' : wxNight(now);
+  let seed = randomSeed();
+  if (q.has('seed')) seed = parseInt(q.get('seed')!, 10) >>> 0;
+
+  const stand = document.getElementById('stand');
+  const main = document.querySelector('main');
+  buildForest(stand, seed);
+  if (rainOn) buildRain(document.getElementById('rain'), seed ^ 0x9e3779b9);
+
+  const moon = document.getElementById('moon')!;
+  const isDark = () => {
+    const t = document.documentElement.getAttribute('data-theme');
+    return t === 'dark' ? true : t === 'light' ? false : matchMedia('(prefers-color-scheme: dark)').matches;
+  };
+  const syncMoon = () => moon.classList.toggle('on', isDark() && night);
+  syncMoon();
+  document.addEventListener('themechange', syncMoon);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncMoon);
+
+  const fit = () => fitStand(stand, main);
+  fit();
+  // iOS fires resize as the toolbar collapses while scrolling (innerHeight only): ignore small height-only changes.
+  let t: ReturnType<typeof setTimeout>, lw = innerWidth, lh = innerHeight;
+  addEventListener('resize', () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      if (innerWidth === lw && Math.abs(innerHeight - lh) <= 150) return;
+      lw = innerWidth; lh = innerHeight; fit();
+    }, 80);
+  });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+</script>

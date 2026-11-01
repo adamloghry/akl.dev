@@ -1,0 +1,79 @@
+---
+// Base.astro — document shell: metadata, theme-before-paint, JSON-LD, fonts.
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-500.css';
+import '../styles/global.css';
+import font400 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url';
+import font500 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2?url';
+
+interface Props { title?: string; description?: string; noindex?: boolean; }
+const site = 'https://akl.dev';
+const {
+  title = 'Adam Loghry',
+  description = 'Adam K. Loghry — Senior Staff SRE & SRE Lead at Google Kubernetes Engine in Seattle.',
+  noindex = false,
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, site).href;
+
+const person = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Adam K. Loghry',
+  givenName: 'Adam',
+  familyName: 'Loghry',
+  url: site + '/',
+  email: 'mailto:akl@akl.io',
+  jobTitle: 'Senior Staff Site Reliability Engineer',
+  worksFor: { '@type': 'Organization', name: 'Google', url: 'https://www.google.com/' },
+  address: { '@type': 'PostalAddress', addressLocality: 'Seattle', addressRegion: 'WA', addressCountry: 'US' },
+  sameAs: [
+    'https://bsky.app/profile/did:plc:u2hotgrxdf5rr3zqjubs2wsb',
+    'https://hachyderm.io/@akl',
+    'https://linkedin.com/in/adamloghry',
+    'https://github.com/adamloghry',
+    'https://16384.dev/',
+    'https://akl.run/',
+  ],
+};
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  {noindex && <meta name="robots" content="noindex" />}
+  {!noindex && <link rel="canonical" href={canonical} />}
+  <link rel="preload" href={font400} as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href={font500} as="font" type="font/woff2" crossorigin />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f5ec" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f110e" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+  {!noindex && <meta property="og:url" content={canonical} />}
+  <meta property="og:image" content={site + '/og.png'} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="sitemap" href="/sitemap-index.xml" />
+  <link rel="alternate" type="text/markdown" href="/index.html.md" />
+  <link rel="describedby" href="/llms.txt" />
+  <link rel="me" href="https://hachyderm.io/@akl" />
+  <link rel="me" href="https://bsky.app/profile/did:plc:u2hotgrxdf5rr3zqjubs2wsb" />
+  <link rel="me" href="https://github.com/adamloghry" />
+  <!-- Theme before first paint: a stored override wins, else the system preference (handled by CSS). -->
+  <script is:inline>
+    (function(){try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();
+  </script>
+  <script type="application/ld+json" set:html={JSON.stringify(person)} />
+</head>
+<body>
+  <slot />
+</body>
+</html>

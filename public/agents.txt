@@ -1,0 +1,5 @@
+# agents.txt — https://agents-txt.com/ (v1.0)
+# akl.dev is a static personal page. It exposes no agent-runtime capabilities today.
+# This file exists so agents get a definitive answer in one request instead of probing.
+# Content briefing: /llms.txt   Page inventory: /sitemap-index.xml   Access policy: /robots.txt
+# When a capability appears (e.g. an MCP endpoint on 16384.dev), add the directive here AND in agents.json.

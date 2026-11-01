@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adam Loghry</title>
+<meta name="description" content="Adam Loghry — Senior Staff SRE &amp; SRE Lead at Google Kubernetes Engine in Seattle.">
+<link rel="canonical" href="https://akl.dev/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f5ec">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f110e">
+<meta property="og:title" content="Adam Loghry">
+<meta property="og:description" content="Senior Staff SRE &amp; SRE Lead at Google Kubernetes Engine in Seattle.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://akl.dev/">
+<meta property="og:image" content="https://akl.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="me" href="https://hachyderm.io/@akl">
+<link rel="me" href="https://bsky.app/profile/akl.dev">
+<link rel="me" href="https://github.com/adamloghry">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>
+/* Theme before first paint: stored override wins, else system. */
+(function(){try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Adam K. Loghry",
+  "givenName": "Adam",
+  "familyName": "Loghry",
+  "url": "https://akl.dev/",
+  "email": "mailto:akl@akl.io",
+  "jobTitle": "Senior Staff Site Reliability Engineer",
+  "worksFor": { "@type": "Organization", "name": "Google", "url": "https://www.google.com/" },
+  "address": { "@type": "PostalAddress", "addressLocality": "Seattle", "addressRegion": "WA", "addressCountry": "US" },
+  "sameAs": [
+    "https://bsky.app/profile/akl.dev",
+    "https://hachyderm.io/@akl",
+    "https://linkedin.com/in/adamloghry",
+    "https://github.com/adamloghry",
+    "https://16384.dev/",
+    "https://akl.run/"
+  ]
+}
+</script>
+<style>
+:root{
+  --bg:#f6f5ec; --fg:#1a1a1a; --muted:#5c5c58; --rule:#e0ded2;
+  --l0:#b0b09c; --l1:#95977f; --l2:#6f7360; --l3:#7a6a52; --l4:#4c5440; --l5:#5c6a4c; --l6:#7d8266; --l7:#565d48;
+  --boost:.1; --rain-op:.22;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f110e; --fg:#d9d9d3; --muted:#8e8e87; --rule:#2a2b29;
+  --l0:#363a30; --l1:#4d5243; --l2:#6a705c; --l3:#6e6250; --l4:#a39e94; --l5:#8a9478; --l6:#6e735e; --l7:#878d78;
+  --boost:0; --rain-op:.3; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0f110e; --fg:#d9d9d3; --muted:#8e8e87; --rule:#2a2b29;
+  --l0:#363a30; --l1:#4d5243; --l2:#6a705c; --l3:#6e6250; --l4:#a39e94; --l5:#8a9478; --l6:#6e735e; --l7:#878d78;
+  --boost:0; --rain-op:.3; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+html,body{margin:0;color:var(--fg)}
+body{font-family:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.page{position:relative;overflow:hidden;min-height:max(100vh,720px);padding:clamp(72px,13vh,160px) 24px 96px}
+a{color:inherit;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--muted) 55%,transparent);text-underline-offset:3px}
+a:hover{text-decoration-color:currentColor}
+a:focus-visible,button:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:2px}
+main{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:48px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.head header{display:flex;flex-direction:column;gap:8px;min-width:0}
+h1{margin:0;font-size:15px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.role{margin:0;color:var(--muted);text-wrap:pretty}
+.bio{margin:0;max-width:58ch;text-wrap:pretty}
+#theme{background:none;border:0;padding:0;width:44px;height:44px;margin:-10px -10px 0 0;flex:0 0 auto;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted)}
+#theme svg{width:18px;height:18px}
+#theme .ic-sun{display:none}
+:root[data-theme="dark"] #theme .ic-sun{display:block}
+:root[data-theme="dark"] #theme .ic-moon{display:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #theme .ic-sun{display:block}:root:not([data-theme="light"]) #theme .ic-moon{display:none}}
+.rows{display:grid;grid-template-columns:minmax(96px,128px) 1fr;column-gap:24px;row-gap:14px;padding-top:32px;border-top:1px solid var(--rule)}
+.rows .k{color:var(--muted)}
+.rows .v{display:flex;flex-wrap:wrap;gap:4px 12px}
+.rows .v .sep{color:var(--muted)}
+.rows a{display:inline-block;padding:6px 0;margin:-6px 0}
+.mail .addr{display:none;color:var(--muted)}
+.mail:hover .addr,.mail:focus-visible .addr{display:inline}
+.foot{position:absolute;right:14px;bottom:10px;z-index:1;font-size:12px;letter-spacing:.04em;color:var(--muted);display:flex;gap:8px;padding:3px 8px;border-radius:3px;background:color-mix(in srgb,var(--bg) 78%,transparent)}
+.foot a{text-decoration:none}
+.foot a:hover{text-decoration:underline}
+.foot-info{display:flex;gap:8px;align-items:center}
+.foot-btn{display:flex;background:none;border:0;padding:0;margin:-8px -6px;width:36px;height:36px;align-items:center;justify-content:center;cursor:pointer;color:inherit}
+.foot-btn svg{width:16px;height:16px}
+.foot:not(.open) .foot-info{display:none}
+.foot.open{gap:10px}
+/* forest */
+.forest{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:-1;transform-origin:50% 100%;animation:gust 38s ease-in-out 6s infinite}
+.stand{--fs:1;position:absolute;bottom:0;height:100%;width:calc(100% / var(--fs));left:calc((1 - 1 / var(--fs)) * 50%);transform:scale(var(--fs));transform-origin:50% 100%}
+.stand svg,.rain svg{position:absolute}
+.ridge{position:absolute;left:0;bottom:0;width:100%}
+.ridge path{opacity:.55;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 14s ease-out forwards}
+.tree{transform-origin:50% 100%;animation:grow var(--d) cubic-bezier(.2,.6,.2,1) var(--t) both}
+.tree.still{animation:none}
+.tree g{transform-box:fill-box;transform-origin:50% 100%;animation:sway var(--sd) ease-in-out var(--st) infinite alternate}
+.drop{animation:fall var(--d) linear var(--t) infinite;opacity:var(--rain-op)}
+.moon{position:fixed;right:20%;top:22px;z-index:-1;width:40px;height:40px;color:var(--l0);opacity:.55;pointer-events:none;animation:drift 3600s linear infinite alternate;display:none}
+.moon.on{display:block}
+@media (max-width:600px){.rows{grid-template-columns:72px 1fr;column-gap:16px}#theme{position:absolute;top:10px;right:10px;margin:0;z-index:2}}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes sway{from{transform:rotate(calc(var(--amp,.5deg) * -1))}to{transform:rotate(var(--amp,.5deg))}}
+@keyframes fall{to{transform:translate(-14px,calc(100vh + 80px))}}
+@keyframes gust{0%,62%,100%{transform:skewX(0)}66%{transform:skewX(-1.6deg)}71%{transform:skewX(-.5deg)}75%{transform:skewX(-1.1deg)}86%{transform:skewX(0)}}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(24px)}}
+@media (prefers-reduced-motion: reduce){.forest,.forest *,.moon{animation-duration:.01s !important;animation-delay:0s !important;animation-iteration-count:1 !important}.rain{display:none}}
+@media print{
+  .forest,.moon,#theme{display:none !important}
+  .page{min-height:0;padding:0}
+  html,body{background:#fff;color:#000}
+  .rows a::after{content:" (" attr(href) ")";font-size:.85em;color:#444}
+  .mail .addr{display:none !important}
+  .foot{position:static;margin-top:32px;background:none;padding:0}.foot-btn{display:none !important}.foot-info{display:flex !important}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <svg class="moon" id="moon" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 A16 16 0 1 0 20 36 A12.5 12.5 0 1 1 20 4 Z" fill="none" stroke="currentColor" stroke-width="0.9" stroke-linejoin="round"></path></svg>
+
+  <div class="forest" id="forest" aria-hidden="true">
+    <div class="stand" id="stand"></div>
+    <div class="rain" id="rain"></div>
+  </div>
+
+  <main>
+    <div class="head">
+      <header>
+        <h1>Adam K. Loghry</h1>
+        <p class="role">Senior Staff SRE &amp; SRE Lead at Google Kubernetes Engine in Seattle</p>
+      </header>
+      <button type="button" id="theme" aria-label="Switch to dark mode" aria-pressed="false">
+        <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+      </button>
+    </div>
+
+    <p class="bio">18+ years in infrastructure at Google (Ads, GCE, GKE) and Amazon (Linux, IAM, EC2 Network Security).</p>
+
+    <nav class="rows" aria-label="Contact and projects">
+      <span class="k">contact</span>
+      <span class="v"><a href="https://signal.me/#u/akl.07">signal</a><span class="sep" aria-hidden="true">·</span><a class="mail" href="mailto:akl@akl.io">email<span class="addr"> · akl@akl.io</span></a><span class="sep" aria-hidden="true">·</span><a href="https://bsky.app/profile/akl.dev" rel="me">bluesky</a><span class="sep" aria-hidden="true">·</span><a href="https://hachyderm.io/@akl" rel="me">mastodon</a><span class="sep" aria-hidden="true">·</span><a href="https://linkedin.com/in/adamloghry" rel="me">linkedin</a></span>
+      <span class="k">projects</span>
+      <span class="v"><a href="https://github.com/adamloghry" rel="me">github</a><span class="sep" aria-hidden="true">·</span><a href="https://16384.dev">16384.dev</a><span class="sep" aria-hidden="true">·</span><a href="https://akl.run">toys &amp; experiments</a></span>
+    </nav>
+  </main>
+
+  <footer class="foot" id="foot">
+    <button type="button" class="foot-btn" id="foot-btn" aria-expanded="false" aria-controls="foot-info" aria-label="Show build info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4.5l5.5 5.5-2.5 2.5L11.5 7z"></path><path d="M11.5 7l-1.5 1.5L3.5 15 6 17.5l6.5-6.5L14 9.5"></path><path d="M16.5 3l2 2M18 8.5l2.5-2.5"></path></svg></button>
+    <span class="foot-info" id="foot-info"><span>built <span id="built">BUILD_DATE</span></span><span aria-hidden="true">·</span><span id="hash">BUILD_HASH</span></span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  /* ---------- config ---------- */
+  var CONFIG = {
+    ridge: { amp: 40, freq: 1.4, phase: 0.6 },
+    rain: { count: 70, durMin: 1.4, durMax: 2.6 },
+    wx: { pRain: [0.62, 0.55, 0.55, 0.45, 0.32, 0.26, 0.10, 0.12, 0.26, 0.48, 0.64, 0.66],
+          sunrise: [7.9, 7.3, 7.3, 6.3, 5.6, 5.2, 5.4, 6.0, 6.7, 7.4, 7.2, 7.8],
+          sunset: [16.7, 17.5, 19.3, 20.0, 20.6, 21.1, 21.0, 20.3, 19.3, 18.2, 16.6, 16.3] },
+    delayMin: 1, delayMax: 48, durMin: 10, durMax: 22, layerStagger: 5,
+    layers: [
+      { kind: 'trees', count: 90, hMin: 30,  hMax: 80,  baseMin: 60, baseMax: 96, opacity: 0.14, stroke: 0.5,  detail: false, mix: { fir: 6, hemlock: 3, spruce: 1 } },
+      { kind: 'trees', count: 56, hMin: 70,  hMax: 150, baseMin: 36, baseMax: 66, opacity: 0.24, stroke: 0.6,  detail: false, mix: { fir: 5, hemlock: 3, spruce: 1, cedar: 1 } },
+      { kind: 'trees', count: 28, hMin: 150, hMax: 280, baseMin: 12, baseMax: 36, opacity: 0.38, stroke: 0.85, detail: true,  mix: { fir: 4, hemlock: 2, cedar: 2, spruce: 1, snag: 1, broadleaf: 1 } },
+      { kind: 'logs',  count: 4,  hMin: 80,  hMax: 180, baseMin: 0,  baseMax: 8,  opacity: 0.5,  stroke: 0.9 },
+      { kind: 'trees', count: 10, hMin: 320, hMax: 520, baseMin: -2, baseMax: 10, opacity: 0.6,  stroke: 1.15, detail: true,  mix: { fir: 4, hemlock: 2, cedar: 3, spruce: 1, snag: 1, broadleaf: 2 } },
+      { kind: 'ferns', count: 30, hMin: 18,  hMax: 46,  baseMin: -2, baseMax: 6,  opacity: 0.55, stroke: 0.9 },
+      { kind: 'grass', count: 70, hMin: 6,   hMax: 16,  baseMin: -2, baseMax: 10, opacity: 0.45, stroke: 0.7 },
+      { kind: 'trees', count: 3,  hMin: 560, hMax: 700, baseMin: -4, baseMax: 2,  opacity: 0.12, stroke: 1.0,  detail: true,  mix: { fir: 3, cedar: 2 } }
+    ]
+  };
+  var NS = 'http://www.w3.org/2000/svg';
+  var f1 = function (n) { return n.toFixed(1); };
+  function mulberry(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function qpt(x0, y0, cx, cy, x1, y1, t) { var u = 1 - t; return [u * u * x0 + 2 * u * t * cx + t * t * x1, u * u * y0 + 2 * u * t * cy + t * t * y1]; }
+
+  /* ---------- species ---------- */
+  function conifer(kind, h, rnd, detail) {
+    var K = {
+      fir:     { wf: 0.20, tier: 13, droop: 0.45, upl: 0.08, top: 'point' },
+      hemlock: { wf: 0.19, tier: 10, droop: 0.65, upl: 0.0,  top: 'droop' },
+      cedar:   { wf: 0.30, tier: 12, droop: 0.55, upl: 0.0,  top: 'point', jcurve: true, flare: true },
+      spruce:  { wf: 0.22, tier: 11, droop: 0.12, upl: 0.15, top: 'point', comb: true }
+    }[kind];
+    var maxW = h * (K.wf + rnd() * 0.08) * (0.85 + rnd() * 0.3);
+    var lean = (rnd() - 0.5) * h * 0.08;
+    var tx = function (f) { return 2 * (1 - f) * f * (lean * 0.4) + f * f * lean; };
+    var d = 'M0 0 Q' + f1(lean * 0.4) + ' ' + f1(-h * 0.5) + ' ' + f1(lean) + ' ' + f1(-h);
+    if (K.flare) d += ' M' + f1(-maxW * 0.07) + ' 0 Q' + f1(-maxW * 0.02) + ' ' + f1(-h * 0.12) + ' 0 ' + f1(-h * 0.3) + ' M' + f1(maxW * 0.07) + ' 0 Q' + f1(maxW * 0.02) + ' ' + f1(-h * 0.12) + ' 0 ' + f1(-h * 0.3);
+    var n = Math.max(6, Math.round(h / K.tier)), start = K.flare ? 0.06 : 0.12;
+    for (var k = 0; k < n; k++) {
+      var f = k / n, y = -(h * start + h * (0.88 - start) * f), x0 = tx(-y / h), base = maxW * Math.pow(1 - f, 0.85);
+      for (var si = 0; si < 2; si++) {
+        var s = si === 0 ? -1 : 1;
+        if (rnd() < 0.07) continue;
+        var w = base * (0.7 + 0.6 * rnd());
+        if (w < 2) continue;
+        var droop = w * (K.droop * (1 - f) + 0.05), lift = -w * K.upl * (0.3 + f), cx, cy, ex, ey;
+        if (K.jcurve) { cx = x0 + s * w * 0.45; cy = y + droop; ex = x0 + s * w; ey = y + droop * 0.45; }
+        else { cx = x0 + s * w * 0.55; cy = y + droop * 0.25; ex = x0 + s * w; ey = y + droop + lift; }
+        d += ' M' + f1(x0) + ' ' + f1(y) + ' Q' + f1(cx) + ' ' + f1(cy) + ' ' + f1(ex) + ' ' + f1(ey);
+        if (detail && w > 14) {
+          var m = K.comb ? 3 : 2;
+          for (var j = 1; j <= m; j++) {
+            var p = qpt(x0, y, cx, cy, ex, ey, j / (m + 1)), tl = w * (K.comb ? 0.14 : 0.2) * (0.7 + 0.6 * rnd());
+            d += ' M' + f1(p[0]) + ' ' + f1(p[1]) + ' l' + f1(s * tl * 0.35) + ' ' + f1(tl);
+            if (K.comb) d += ' M' + f1(p[0]) + ' ' + f1(p[1]) + ' l' + f1(s * tl * 0.35) + ' ' + f1(-tl * 0.6);
+          }
+        }
+      }
+    }
+    if (K.top === 'droop') { var sd = rnd() < 0.5 ? -1 : 1; d += ' M' + f1(lean) + ' ' + f1(-h * 0.94) + ' Q' + f1(lean + sd * h * 0.02) + ' ' + f1(-h * 1.01) + ' ' + f1(lean + sd * h * 0.05) + ' ' + f1(-h * 0.97); }
+    return { d: d, maxW: maxW + Math.abs(lean), h: h };
+  }
+  function snag(h, rnd) {
+    var lean = (rnd() - 0.5) * h * 0.1, top = -h * (0.55 + rnd() * 0.35), maxW = h * 0.12;
+    var d = 'M0 0 Q' + f1(lean * 0.4) + ' ' + f1(top * 0.5) + ' ' + f1(lean) + ' ' + f1(top) + ' l' + f1(h * 0.02) + ' ' + f1(h * 0.03);
+    var stubs = 3 + Math.floor(rnd() * 4);
+    for (var i = 0; i < stubs; i++) { var f = 0.3 + rnd() * 0.6, s = rnd() < 0.5 ? -1 : 1, w = maxW * (0.4 + rnd() * 0.8); d += ' M' + f1(lean * f) + ' ' + f1(top * f) + ' l' + f1(s * w) + ' ' + f1(w * 0.25 * (rnd() - 0.3)); }
+    return { d: d, maxW: maxW + Math.abs(lean), h: h };
+  }
+  function broadleaf(h, rnd) {
+    var d = '', maxW = 0;
+    var seg = function (x, y, ang, len, depth) {
+      var nx = x + Math.cos(ang) * len, ny = y + Math.sin(ang) * len;
+      var cx = (x + nx) / 2 + Math.cos(ang + Math.PI / 2) * len * (rnd() - 0.5) * 0.3, cy = (y + ny) / 2 + Math.sin(ang + Math.PI / 2) * len * (rnd() - 0.5) * 0.3;
+      d += ' M' + f1(x) + ' ' + f1(y) + ' Q' + f1(cx) + ' ' + f1(cy) + ' ' + f1(nx) + ' ' + f1(ny);
+      maxW = Math.max(maxW, Math.abs(nx));
+      if (depth === 0) return;
+      var k = 2 + (rnd() < 0.35 ? 1 : 0);
+      for (var i = 0; i < k; i++) { var da = (rnd() - 0.5) * 1.0 + (i === 0 ? -0.38 : i === 1 ? 0.38 : 0); seg(nx, ny, ang + da, len * (0.62 + rnd() * 0.18), depth - 1); }
+    };
+    seg(0, 0, -Math.PI / 2 + (rnd() - 0.5) * 0.2, h * 0.32, 5);
+    return { d: d, maxW: maxW, h: h };
+  }
+  function fern(sz, rnd) {
+    var d = '', k = 5 + Math.floor(rnd() * 4);
+    for (var i = 0; i < k; i++) {
+      var a = -Math.PI * (0.1 + 0.8 * (i + rnd() * 0.6) / k), len = sz * (0.6 + rnd() * 0.5);
+      var ex = Math.cos(a) * len, ey = Math.sin(a) * len, cx = ex * 0.5 - Math.sin(a) * len * 0.18, cy = ey * 0.5 + Math.cos(a) * len * 0.18;
+      d += ' M0 0 Q' + f1(cx) + ' ' + f1(cy) + ' ' + f1(ex) + ' ' + f1(ey);
+      for (var j = 1; j <= 3; j++) { var p = qpt(0, 0, cx, cy, ex, ey, j / 4), tl = len * 0.13; d += ' M' + f1(p[0]) + ' ' + f1(p[1]) + ' l' + f1(Math.cos(a + 1.2) * tl) + ' ' + f1(Math.sin(a + 1.2) * tl) + ' M' + f1(p[0]) + ' ' + f1(p[1]) + ' l' + f1(Math.cos(a - 1.2) * tl) + ' ' + f1(Math.sin(a - 1.2) * tl); }
+    }
+    return { d: d, maxW: sz * 1.15, h: sz * 1.15 };
+  }
+  function grass(sz, rnd) {
+    var d = '', k = 3 + Math.floor(rnd() * 3);
+    for (var i = 0; i < k; i++) { var a = -Math.PI / 2 + (rnd() - 0.5) * 1.2, len = sz * (0.5 + rnd() * 0.6); d += ' M0 0 Q' + f1(Math.cos(a) * len * 0.5) + ' ' + f1(Math.sin(a) * len * 0.5 - len * 0.1) + ' ' + f1(Math.cos(a) * len) + ' ' + f1(Math.sin(a) * len); }
+    return { d: d, maxW: sz, h: sz };
+  }
+  function log(len, rnd) {
+    var th = len * 0.08 + 3, sag = (rnd() - 0.5) * len * 0.1;
+    var d = 'M' + f1(-len / 2) + ' ' + f1(-th) + ' Q0 ' + f1(-th + sag) + ' ' + f1(len / 2) + ' ' + f1(-th * 0.8);
+    d += ' M' + f1(-len / 2) + ' 0 Q0 ' + f1(sag) + ' ' + f1(len / 2) + ' ' + f1(-th * 0.1);
+    d += ' M' + f1(-len / 2) + ' ' + f1(-th) + ' l0 ' + f1(th) + ' M' + f1(len * 0.1) + ' ' + f1(-th) + ' l' + f1(th * 0.6) + ' ' + f1(-th * 1.3);
+    return { d: d, maxW: len / 2 + th, h: th * 2.5 };
+  }
+  function pick(mix, rnd) { var tot = 0, k; for (k in mix) tot += mix[k]; var r = rnd() * tot; for (k in mix) { r -= mix[k]; if (r <= 0) return k; } return 'fir'; }
+
+  /* ---------- Seattle clock (no network) ---------- */
+  function seattleNow() {
+    var y = 2026, m = 1, d = 1, h = 12;
+    try {
+      var p = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false }).formatToParts(new Date());
+      var g = function (t) { return parseInt(p.filter(function (x) { return x.type === t; })[0].value, 10); };
+      y = g('year'); m = g('month'); d = g('day'); h = (g('hour') % 24) + g('minute') / 60;
+    } catch (e) {}
+    return { y: y, m: m, d: d, h: h };
+  }
+  function wxRain(s) { return mulberry(s.y * 10000 + s.m * 100 + s.d)() < CONFIG.wx.pRain[s.m - 1]; }
+  function wxNight(s) { return s.h < CONFIG.wx.sunrise[s.m - 1] || s.h >= CONFIG.wx.sunset[s.m - 1]; }
+
+  /* ---------- build the stand ---------- */
+  function buildForest(seed) {
+    var rnd = mulberry(seed), stand = document.getElementById('stand'), frag = document.createDocumentFragment();
+    var R = CONFIG.ridge, H = R.amp * 2 + 12, rd = '';
+    for (var x = 0; x <= 1280; x += 32) { var yfb = R.amp * (1 + Math.sin(x / 1280 * Math.PI * 2 * R.freq + R.phase)) + 2; rd += (x === 0 ? 'M' : ' L') + x + ' ' + (H - yfb).toFixed(1); }
+    var ridge = document.createElementNS(NS, 'svg'); ridge.setAttribute('class', 'ridge'); ridge.setAttribute('viewBox', '0 0 1280 ' + H); ridge.setAttribute('preserveAspectRatio', 'none'); ridge.style.height = H + 'px'; ridge.style.color = 'var(--l4)';
+    var rp = document.createElementNS(NS, 'path'); rp.setAttribute('d', rd); rp.setAttribute('fill', 'none'); rp.setAttribute('stroke', 'currentColor'); rp.setAttribute('stroke-width', '1'); rp.setAttribute('vector-effect', 'non-scaling-stroke'); rp.setAttribute('pathLength', '1'); ridge.appendChild(rp); frag.appendChild(ridge);
+    CONFIG.layers.forEach(function (L, li) {
+      for (var i = 0; i < L.count; i++) {
+        var size = L.hMin + rnd() * (L.hMax - L.hMin), g, sp;
+        if (L.kind === 'ferns') g = fern(size, rnd);
+        else if (L.kind === 'grass') g = grass(size, rnd);
+        else if (L.kind === 'logs') g = log(size, rnd);
+        else { sp = pick(L.mix, rnd); g = sp === 'snag' ? snag(size, rnd) : sp === 'broadleaf' ? broadleaf(size, rnd) : conifer(sp, size, rnd, L.detail); }
+        var xp = rnd() * 100, bottom = L.baseMin + rnd() * (L.baseMax - L.baseMin) + R.amp * (1 + Math.sin(xp / 100 * Math.PI * 2 * R.freq + R.phase));
+        var delay = CONFIG.delayMin + rnd() * (CONFIG.delayMax - CONFIG.delayMin) + li * CONFIG.layerStagger;
+        var dur = (CONFIG.durMin + rnd() * (CONFIG.durMax - CONFIG.durMin)) * (L.kind === 'trees' ? (0.6 + g.h / 500) : 0.6);
+        var pad = 6, W = g.maxW * 2 + pad * 2, Hh = g.h + pad * 2;
+        var amp = L.kind === 'ferns' ? 1.4 : L.kind === 'grass' ? 1.0 : (g.h > 400 ? 0.3 : g.h > 200 ? 0.5 : 0.8);
+        var svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('class', 'tree' + (L.kind === 'logs' ? ' still' : ''));
+        svg.setAttribute('viewBox', f1(-g.maxW - pad) + ' ' + f1(-g.h - pad) + ' ' + f1(W) + ' ' + f1(Hh));
+        svg.style.cssText = 'left:' + xp.toFixed(2) + '%;bottom:' + bottom.toFixed(0) + 'px;width:' + W.toFixed(0) + 'px;height:' + Hh.toFixed(0) + 'px;margin-left:' + (-W / 2).toFixed(0) + 'px;color:var(--l' + li + ');opacity:calc(' + L.opacity + ' + var(--boost));--d:' + f1(dur) + 's;--t:' + f1(delay) + 's;--sd:' + f1(5 + rnd() * 8 + g.h / 60) + 's;--st:' + f1(rnd() * 8) + 's;--amp:' + amp + 'deg';
+        var gg = document.createElementNS(NS, 'g'); if (L.kind === 'logs') gg.style.animation = 'none';
+        var path = document.createElementNS(NS, 'path'); path.setAttribute('d', g.d); path.setAttribute('fill', 'none'); path.setAttribute('stroke', 'currentColor'); path.setAttribute('stroke-linecap', 'round'); path.setAttribute('stroke-linejoin', 'round'); path.setAttribute('stroke-width', String(L.stroke));
+        gg.appendChild(path); svg.appendChild(gg); frag.appendChild(svg);
+      }
+    });
+    stand.appendChild(frag);
+  }
+  function buildRain(seed) {
+    var rnd = mulberry(seed), box = document.getElementById('rain'), frag = document.createDocumentFragment(), Rn = CONFIG.rain;
+    for (var i = 0; i < Rn.count; i++) {
+      var len = 10 + rnd() * 10, dur = Rn.durMin + rnd() * (Rn.durMax - Rn.durMin);
+      var svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'drop'); svg.setAttribute('viewBox', '0 0 4 20'); svg.setAttribute('preserveAspectRatio', 'none');
+      svg.style.cssText = 'left:' + (rnd() * 100).toFixed(2) + '%;top:-' + (24 + rnd() * 300).toFixed(0) + 'px;width:4px;height:' + len.toFixed(0) + 'px;color:var(--l1);--d:' + dur.toFixed(2) + 's;--t:' + (rnd() * 3).toFixed(2) + 's';
+      var p = document.createElementNS(NS, 'path'); p.setAttribute('d', 'M3 0 L1 20'); p.setAttribute('fill', 'none'); p.setAttribute('stroke', 'currentColor'); p.setAttribute('stroke-width', '0.9'); p.setAttribute('stroke-linecap', 'round'); p.setAttribute('vector-effect', 'non-scaling-stroke');
+      svg.appendChild(p); frag.appendChild(svg);
+    }
+    box.appendChild(frag);
+  }
+
+  /* ---------- theme ---------- */
+  var root = document.documentElement, btn = document.getElementById('theme');
+  function isDark() { var t = root.getAttribute('data-theme'); if (t === 'dark') return true; if (t === 'light') return false; return window.matchMedia('(prefers-color-scheme: dark)').matches; }
+  function syncButton() { var d = isDark(); btn.setAttribute('aria-pressed', d ? 'true' : 'false'); btn.setAttribute('aria-label', d ? 'Switch to light mode' : 'Switch to dark mode'); syncMoon(); }
+  btn.addEventListener('click', function () { var next = isDark() ? 'light' : 'dark'; root.setAttribute('data-theme', next); try { localStorage.setItem('theme', next); } catch (e) {} syncButton(); });
+  try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncButton); } catch (e) {}
+
+  /* ---------- build-info disclosure (mobile) ---------- */
+  var footBtn = document.getElementById('foot-btn'), foot = document.getElementById('foot');
+  footBtn.addEventListener('click', function () { var open = !foot.classList.contains('open'); foot.classList.toggle('open', open); footBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); footBtn.setAttribute('aria-label', open ? 'Hide build info' : 'Show build info'); });
+
+  /* ---------- weather + moon ---------- */
+  var q = new URLSearchParams(location.search), now = seattleNow();
+  var rainOn = q.has('rain') ? q.get('rain') !== 'off' : wxRain(now);
+  var night = q.has('moon') ? q.get('moon') !== 'off' : wxNight(now);
+  function syncMoon() { document.getElementById('moon').classList.toggle('on', isDark() && night); }
+
+  /* ---------- fit the stand to the space under the text ---------- */
+  var FOREST_H = 620; /* tallest near tree + ridge, px at scale 1 */
+  function fit() {
+    var main = document.querySelector('main').getBoundingClientRect();
+    var avail = window.innerHeight - (main.bottom + window.scrollY) - 24; /* space under the text in the first viewport */
+    var fs = Math.max(0.35, Math.min(1, avail / FOREST_H));
+    document.getElementById('stand').style.setProperty('--fs', fs.toFixed(3));
+  }
+  var fitT; window.addEventListener('resize', function () { clearTimeout(fitT); fitT = setTimeout(fit, 80); });
+
+  /* ---------- go ---------- */
+  var seed = (function () { try { var a = new Uint32Array(1); crypto.getRandomValues(a); return a[0]; } catch (e) { return Date.now() >>> 0; } })();
+  if (q.has('seed')) seed = parseInt(q.get('seed'), 10) >>> 0;
+  buildForest(seed);
+  if (rainOn) buildRain(seed ^ 0x9e3779b9);
+  syncButton();
+  fit();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>
+</body>
+</html>

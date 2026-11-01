@@ -1,0 +1,9 @@
+# akl.dev — personal site. Everything public is fine to crawl.
+# Layer 1 of the agent stack (RFC 9309). Inventory: /sitemap-index.xml. Briefing: /llms.txt. Capabilities: /agents.txt.
+User-agent: *
+Allow: /
+Allow: /agents.txt
+Allow: /agents.json
+Allow: /llms.txt
+
+Sitemap: https://akl.dev/sitemap-index.xml

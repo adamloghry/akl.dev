@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agents-txt.com/schema/agents-json/v1.0.json",
+  "version": "1.0",
+  "standard": "agents.txt",
+  "site": {
+    "name": "Adam K. Loghry",
+    "url": "https://akl.dev",
+    "description": "Personal landing page. No agent-runtime capabilities advertised."
+  },
+  "docs": "https://akl.dev/llms.txt"
+}

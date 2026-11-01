@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import Forest from '../components/Forest.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import Colophon from '../components/Colophon.astro';
+---
+<Base title="Not found — Adam Loghry" description="No such page." noindex>
+  <div class="page">
+    <Forest />
+    <main>
+      <div class="head">
+        <header>
+          <h1>Adam K. Loghry</h1>
+          <p class="role">404 — no such path</p>
+        </header>
+        <ThemeToggle />
+      </div>
+      <p class="bio">Nothing grows here. Try the <a href="/">front door</a>.</p>
+    </main>
+    <Colophon />
+  </div>
+</Base>

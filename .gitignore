@@ -1,0 +1,22 @@
+.DS_Store
+*~
+
+# local Claude Code permission overrides, machine-specific
+.claude/
+.superpowers/
+
+# Node / Astro build artifacts
+node_modules/
+dist/
+.astro/
+
+# devenv / direnv runtime artifacts
+.direnv/
+.devenv/
+.devenv.flake.nix
+.pre-commit-config.yaml
+result
+
+# design-tool scratch material (never shipped, never committed)
+tmp/
+

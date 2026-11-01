@@ -1,0 +1,20 @@
+# Adam K. Loghry
+
+> Personal landing page of Adam K. Loghry (akl): Senior Staff SRE & SRE Lead at Google Kubernetes Engine, Seattle. 18+ years in infrastructure at Google (Ads, GCE, GKE) and Amazon (Linux, IAM, EC2 Network Security). This site is a single page with contact links and pointers to code; a notes/blog section is planned.
+
+How to reach Adam: Signal (username akl.07), email akl@akl.io, Bluesky @akl.io, Mastodon @akl@hachyderm.io, LinkedIn adamloghry. Code lives on GitHub (adamloghry) and on a self-hosted forge at 16384.dev. Toys & experiments are at akl.run.
+
+## Pages
+
+- [Home](https://akl.dev/index.html.md): the landing page as markdown (same content as /)
+
+## Elsewhere
+
+- [16384.dev](https://16384.dev/): self-hosted forge
+- [akl.run](https://akl.run/): toys & experiments
+- [GitHub](https://github.com/adamloghry): public mirrors
+
+## Optional
+
+- [agents.txt](https://akl.dev/agents.txt): machine-readable capability declaration (none advertised yet)
+- [humans.txt](https://akl.dev/humans.txt): who made this

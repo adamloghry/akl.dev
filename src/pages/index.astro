@@ -1,0 +1,45 @@
+---
+import Base from '../layouts/Base.astro';
+import Forest from '../components/Forest.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import Colophon from '../components/Colophon.astro';
+---
+<Base>
+  <div class="page">
+    <Forest />
+
+    <main>
+      <div class="head">
+        <header>
+          <h1>Adam K. Loghry</h1>
+          <p class="role">Senior Staff SRE &amp; SRE Lead at Google Kubernetes Engine in Seattle</p>
+        </header>
+        <ThemeToggle />
+      </div>
+
+      <p class="bio">18+ years in infrastructure at Google (Ads, GCE, GKE) and Amazon (Linux, IAM, EC2 Network Security).</p>
+
+      <nav class="rows" aria-label="Contact and projects">
+        <span class="k">contact</span>
+        <span class="v">
+          <a href="https://signal.me/#u/akl.07">signal</a><span class="sep" aria-hidden="true">·</span>
+          <a class="mail" href="mailto:akl@akl.io">email<span class="addr"> · akl@akl.io</span></a><span class="sep" aria-hidden="true">·</span>
+          <a href="https://bsky.app/profile/did:plc:u2hotgrxdf5rr3zqjubs2wsb" rel="me">bluesky</a><span class="sep" aria-hidden="true">·</span>
+          <a href="https://hachyderm.io/@akl" rel="me">mastodon</a><span class="sep" aria-hidden="true">·</span>
+          <a href="https://linkedin.com/in/adamloghry" rel="me">linkedin</a>
+        </span>
+        <span class="k">projects</span>
+        <span class="v">
+          <a href="https://github.com/adamloghry" rel="me">github</a><span class="sep" aria-hidden="true">·</span>
+          <a href="https://16384.dev">16384.dev</a><span class="sep" aria-hidden="true">·</span>
+          <a href="https://akl.run">toys &amp; experiments</a>
+        </span>
+        <!-- Phase 2 (when akl.dev/notes exists): add
+        <span class="k">writing</span>
+        <span class="v"><a href="/notes/">notes</a> …</span> -->
+      </nav>
+    </main>
+
+    <Colophon />
+  </div>
+</Base>
