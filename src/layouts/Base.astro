@@ -10,7 +10,7 @@ interface Props { title?: string; description?: string; noindex?: boolean; }
 const site = 'https://akl.dev';
 const {
   title = 'Adam Loghry',
-  description = 'Adam K. Loghry — Senior Staff SRE & SRE Lead at Google Kubernetes Engine in Seattle.',
+  description = 'Adam K. Loghry, Engineer in Seattle',
   noindex = false,
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, site).href;
