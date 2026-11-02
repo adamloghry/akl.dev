@@ -57,6 +57,10 @@ the deltas from that handoff; where they conflict, this document wins.
   still `@akl.io`, and moving to `@akl.dev` is optional, so every Bluesky link uses
   `https://bsky.app/profile/did:plc:u2hotgrxdf5rr3zqjubs2wsb`, which resolves under any handle.
   `llms.txt` names the handle `@akl.io`. `AC-NAV-1` checks the DID URL.
+- **No email reveal (owner decision, 2026-11-01; overrides handoff D13 "address revealed on
+  hover/focus").** The reveal shifted the contact row on hover, so the `email` link carries no
+  `.addr` span; it stays a plain `mailto:`. The `.mail .addr` rules in `global.css` stay (AC-REF-1)
+  and match nothing. `AC-NAV-4`: no `class="addr"` in `dist/index.html`.
 - **Copy (owner, 2026-11-01).** 16384.dev is described only as a "self-hosted forge" (no provenance
   claim yet). akl.run is "toys & experiments" everywhere, matching the visible link text.
 - **Fonts.** Import only `@fontsource/ibm-plex-mono/latin-400.css` and `latin-500.css`.

@@ -30,6 +30,10 @@ ok('AC-COPY-3', links.length === 8 && absent.length === 0, 'index.html.md in syn
 const redirects = await read('dist/_redirects');
 ok('AC-NAV-3', /^\/\.well-known\/webfinger\s+https:\/\/hachyderm\.io\/\.well-known\/webfinger\?resource=acct:akl@hachyderm\.io\s+302$/m.test(redirects), 'webfinger redirect present');
 
+// AC-NAV-4: the email link does not reveal the address on hover/focus (owner, overrides D13).
+const page = await read('dist/index.html');
+ok('AC-NAV-4', page.includes('href="mailto:akl@akl.io"') && !/class="addr"/.test(page), 'email link has no hover address reveal');
+
 // AC-REF-1: the shipped forest generator and stylesheet are byte-identical to the handoff reference.
 for (const [a, b] of [['src/scripts/forest.js', 'docs/handoff/reference/forest.js'], ['src/styles/global.css', 'docs/handoff/reference/theme.css']]) {
   const [x, y] = await Promise.all([readFile(new URL(a, root)), readFile(new URL(b, root))]);
