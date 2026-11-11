@@ -76,7 +76,8 @@ the deltas from that handoff; where they conflict, this document wins.
   ~1940px at the 1440x900 and 1920x1080 designs (~150 elements per 1000px) but 3840px on a 4K
   window (76 per 1000px). `Forest.astro` now fits first, then builds from a copy of
   `DEFAULT_CONFIG` whose layer counts are multiplied by `clamp(layoutWidth / 1950, 1, 3)`: never
-  fewer than the handoff's counts, so phones are unchanged; 2560x1440 gets 382 elements, 4K 573.
+  fewer than the handoff's counts, so phones are unchanged; a 3840x1100 window gets 561 elements
+  (tall windows scale the stand up instead, see the next entry: 2560x1440 keeps 291, 4K gets 382).
   Wide-and-short windows whose stand is scaled down (1280x720, phone landscape) also gain up to a
   third. Rain sits outside the scaled stand, so its 70 drops scale by `clamp(innerWidth / 1440, 1, 3)`.
   A resize that moves the density by more than 20% rebuilds the stand from the same seed; the
@@ -84,6 +85,49 @@ the deltas from that handoff; where they conflict, this document wins.
   a rebuilt stand resumes where the page is instead of regrowing. `forest.js` is untouched
   (AC-REF-1). Same seed and same density still give the same stand; `?seed=` screenshots are
   comparable only at the same viewport. `AC-FOREST-6`, `AC-FOREST-7`, `AC-RAIN-3`.
+- **Stand scales up on tall windows (owner request, 2026-11-10; changes the handoff `fitStand` cap
+  of 1).** The handoff caps the stand's scale at `--fs = 1`, so on a 2560x1440 or 4K window the
+  forest filled only the bottom third and left an empty band between the text and the treetops.
+  `src/scripts/fit.ts` copies `fitStand` exactly (same 0.35 floor, same sink below the viewport,
+  same `--fs`) but caps it at **1.5**, and `Forest.astro` calls it instead. 1.5 is roughly where
+  2560x1440 fits on its own (1.54), so that size keeps the design's gap under the text. A 4K window
+  still has room above the stand; higher caps made the strokes read heavy. Windows at or below
+  1920x1080 fit below 1 and are unchanged (1440x900 stays 0.741). Density follows automatically:
+  the layout width is `innerWidth / --fs`, so a scaled-up stand gets fewer extra trees.
+  `AC-FOREST-9`. `AC-FOREST-6` resizes to 3840x1100, where `--fs` stays about 1. `AC-FOREST-4`
+  screenshots the viewport clipped to the ridge, because a scaled stand overhangs the viewport by a
+  fraction of a pixel and the element screenshot then came back blank.
+- **Resize keeps the stand (owner request, 2026-11-10).** `buildForest` draws every layer from one
+  seeded stream, so when a resize changed the density, a different count in one layer shifted every
+  later random number and the whole stand reshuffled (201 of 291 elements moved going from 1440x900
+  to 3840x1100). `src/scripts/stand.ts` exports `buildStand(stand, seed, cfg)`, which calls the
+  unchanged `buildForest` once per layer with that layer alone (every other layer at `count: 0`, so
+  it keeps its index, colour `--l{li}` and grow stagger) and a per-layer seed: murmur3 `fmix32` of
+  the seed, plus `(li + 1) * 0x9e3779b9`, mixed again. Each layer's elements come from its own
+  stream in order, so growing a count only appends and shrinking only drops from the end. Each call
+  draws a ridge and only the first is kept. A given `?seed=` now yields a different stand than the
+  handoff's reference screenshots; the same seed and density still give the same stand.
+  `AC-FOREST-8`.
+- **Gust sweeps left to right (owner request, 2026-11-10; changes handoff 02 sections 5 and 7).**
+  The handoff's gust skews the whole `.forest` (38 s cycle, 6 s delay), which on a wide window
+  reads as the picture tilting. `.forest` no longer animates. Each swaying tree (120px and up, not
+  `.calm` or `.still`) leans on the individual `rotate` property to the same keyframe rhythm
+  (`gust-lean`, up to 1.6 degrees, crowns to the right as with wind from the left). Its delay grows
+  with its x position: `src/scripts/gust.ts` sets `--gx` = left% x window width / 800 px/s after
+  each build, so the front crosses 1440px in 1.8 s and a 4K window in 4.8 s. `.rain` keeps the
+  handoff's skew, positioned to fill `.forest` and delayed to mid-sweep. All gust delays subtract
+  `--age`, so a resize rebuild keeps the wind's phase. Trees under 120px do not lean: their tips
+  would move under 2px, and leaning every wrapper measured 2.4 to 2.7x the per-frame style work at
+  3840 and 5120px wide (software rendering; not measured on a GPU). `AC-GUST-1`, `AC-GUST-2`.
+- **Hidden tabs pause the looping motion (owner request, 2026-11-10).** `src/scripts/pause.ts`
+  sets `.tab-hidden` on `#forest` and `#moon` at load and on every `visibilitychange` while the
+  document is hidden. `overrides.css` then pauses only the infinite animations: sway and gust lean
+  on the trees, the rain and its skew, the moon drift (and the crows, flakes and owl blink below).
+  They repeat, so resuming mid-cycle is invisible. The one-shot grow-in and ridge reveal keep
+  running, so a page opened in a background tab is fully grown when the reader arrives and the
+  stand's `--age` stays accurate. The rule is `!important` because the gust rule's `animation`
+  shorthand is more specific and would reset the play state. The saving is small: browsers already
+  stop painting hidden tabs. `AC-PAUSE-1`.
 - **Copy (owner, 2026-11-01).** 16384.dev is described only as a "self-hosted forge" (no provenance
   claim yet). akl.run is "toys & experiments" everywhere, matching the visible link text.
 - **Fonts.** Import only `@fontsource/ibm-plex-mono/latin-400.css` and `latin-500.css`.

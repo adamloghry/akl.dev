@@ -19,8 +19,13 @@ links, tokens, layout or forest behaviour without the owner).
 - `src/components/Forest.astro` also owns density: it scales the layer and rain
   counts with width by passing a derived config to `forest.js`, and rebuilds
   the stand on a large resize (`docs/design.md` section 3).
+- `src/scripts/{fit,stand,gust,pause}.ts` - owner deltas that wrap the
+  unmodified `forest.js`: the taller fit cap, per-layer seeding (so a resize
+  does not reshuffle trees), the left-to-right gust delays, and pausing loops in
+  hidden tabs. New forest behaviour goes in a module like these, not in
+  `forest.js`.
 - `src/styles/overrides.css` - owner-approved CSS deltas from the handoff
-  (the ridge draw-on, the stand's `--age`). Imported after `global.css`; a correction to the
+  (the ridge draw-on, the stand's `--age`, the gust, pausing). Imported after `global.css`; a correction to the
   design goes here, with a note in `docs/design.md` and a check in `verify.mjs`.
 - `public/` - served verbatim: `_headers` (security headers and CSP),
   `_redirects` (webfinger handoff to hachyderm), `index.html.md` (markdown twin
