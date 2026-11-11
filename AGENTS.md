@@ -24,6 +24,9 @@ links, tokens, layout or forest behaviour without the owner).
   does not reshuffle trees), the left-to-right gust delays, and pausing loops in
   hidden tabs. New forest behaviour goes in a module like these, not in
   `forest.js`.
+- `src/scripts/seattle.ts` - the Seattle touches: Rainier on dry days, crows
+  at dusk, morning mist, a night owl, a rare sasquatch, rare winter snow. Each
+  has a `?name=on|off` override (`docs/design.md` section 3).
 - `src/styles/overrides.css` - owner-approved CSS deltas from the handoff
   (the ridge draw-on, the stand's `--age`, the gust, pausing). Imported after `global.css`; a correction to the
   design goes here, with a note in `docs/design.md` and a check in `verify.mjs`.

@@ -81,7 +81,7 @@ for (const [w, h, scheme, label] of [[1440, 900, 'light', 'desktop-light'], [128
 // which stopped ~1300px in on wide screens). Trees and the colophon are hidden so only the ridge leaves ink in the strip.
 for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
   const { p, ctx } = await page(w, h, 'light', '&rain=off&moon=off', true);
-  await p.evaluate(() => { for (const e of document.querySelectorAll('.tw,.foot')) e.style.display = 'none'; });
+  await p.evaluate(() => { for (const e of document.querySelectorAll('.stand > :not(.ridge),.foot')) e.style.display = 'none'; });
   // Clip to the ridge's box inside the viewport: a stand scaled past 1 (AC-FOREST-9) overhangs it by a sub-pixel, and an element
   // screenshot then captures beyond the viewport, where the fixed layer comes out blank.
   const clip = await p.evaluate(() => { const r = document.querySelector('.ridge').getBoundingClientRect(); return { x: 0, y: r.top, width: innerWidth, height: Math.min(innerHeight, r.bottom) - r.top }; });
@@ -188,6 +188,30 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
   const h = await states(true), v = await states(false);
   ok('AC-PAUSE-1 hidden', h.tree === 'paused' && h.drop === 'paused' && h.rain === 'paused' && h.moon === 'paused' && h.grow === 'running', `hidden pauses the loops, not the grow-in (${JSON.stringify(h)})`);
   ok('AC-PAUSE-1 visible', Object.values(v).every(x => x === 'running'), `visible resumes them (${JSON.stringify(v)})`);
+  await ctx.close(); }
+// AC-PNW-*: the Seattle touches (owner; src/scripts/seattle.ts), driven by their QA overrides so the clock does not matter.
+const pnw = p => p.evaluate(() => { const s = document.getElementById('stand'), n = sel => document.querySelectorAll(sel).length, owl = document.querySelector('.owl'), crows = document.querySelector('.crows');
+  return { mountain: n('.mountain'), mountainFirst: s.firstElementChild?.classList.contains('mountain') ?? false, mist: n('.mist'), owl: n('.owl'), squatch: n('.squatch'), still: n('.squatch.still'), crows: n('.crow'),
+    flakes: n('.flake'), drops: n('.drop'), perch: owl ? owl.parentElement.style.color + '@' + owl.parentElement.parentElement.style.left : '', crowsShown: crows ? getComputedStyle(crows).display : '' }; });
+{ const { p, ctx, errs } = await page(1440, 900, 'dark', '&rain=off&snow=off&mountain=on&mist=on&owl=on&sasquatch=on&crows=on');
+  const a = await pnw(p), csp = await p.evaluate(() => window.__csp);
+  ok('AC-PNW-1', a.mountain === 1 && a.mountainFirst && a.mist === 3 && a.owl === 1 && a.perch.startsWith('var(--l4)@') && a.squatch === 1 && a.crows >= 5 && a.crows <= 9 && errs.length === 0 && csp.length === 0,
+    `each touch appears once: mountain behind everything, 3 mist bands, owl on a near tree (${a.perch}), sasquatch, ${a.crows} crows; no errors or CSP violations`);
+  await p.setViewportSize({ width: 3840, height: 1100 }); await p.waitForTimeout(400);
+  const z = await pnw(p);
+  ok('AC-PNW-2', z.mountain === 1 && z.mountainFirst && z.mist === 3 && z.owl === 1 && z.perch === a.perch && z.squatch === 1 && z.crows === a.crows, `a resize rebuild keeps one of each and the owl on the same tree (${z.perch})`);
+  await ctx.close(); }
+{ const { p, ctx } = await page(1440, 900, 'dark', '&snow=on');
+  const a = await pnw(p);
+  ok('AC-PNW-3', a.flakes === 60 && a.drops === 0 && a.mountain === 0, `snow replaces rain and hides the mountain (${a.flakes} flakes, ${a.drops} drops)`);
+  await ctx.close(); }
+{ const { p, ctx } = await page(1440, 900, 'light', '&rain=on&snow=off&mountain=off&mist=off&owl=off&sasquatch=off&crows=off');
+  const a = await pnw(p);
+  ok('AC-PNW-4', a.mountain + a.mist + a.owl + a.squatch + a.crows + a.flakes === 0 && a.drops === 70, 'every touch can be switched off; rain is unaffected');
+  await ctx.close(); }
+{ const { p, ctx } = await page(1440, 900, 'light', '&rain=off&crows=on&sasquatch=on&snow=on', true);
+  const a = await pnw(p), rain = await p.evaluate(() => getComputedStyle(document.querySelector('.rain')).display);
+  ok('AC-PNW-5', a.crowsShown === 'none' && rain === 'none' && a.still === 1, 'reduced motion: no crows, no falling snow, sasquatch stands still');
   await ctx.close(); }
 await b.close(); srv.close();
 console.log(fails ? `\n${fails} FAILED` : '\nall checks passed'); process.exit(fails ? 1 : 0);

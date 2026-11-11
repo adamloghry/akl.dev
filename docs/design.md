@@ -128,6 +128,29 @@ the deltas from that handoff; where they conflict, this document wins.
   stand's `--age` stays accurate. The rule is `!important` because the gust rule's `animation`
   shorthand is more specific and would reset the play state. The saving is small: browsers already
   stop painting hidden tabs. `AC-PAUSE-1`.
+- **Seattle touches (owner decision, 2026-11-10; replaces the fireflies and extends the snow idea
+  in handoff 02 section 7).** `src/scripts/seattle.ts` adds six things beside the unmodified
+  forest, all decided like the rain from the Seattle clock and seeded rolls, with no network:
+  - *The mountain is out*: a wireframe Rainier (Little Tahoma on its left shoulder) behind every
+    tree, summit above the far and mid layers, on days with no rain and no snow.
+  - *Crows at dusk*: 5 to 9 small flapping crows cross right to left, repeating, from an hour
+    before the month's mean sunset to 0.4 h after. Hidden under reduced motion.
+  - *Morning mist*: three bands of the page colour between the mid layer and the logs, from half
+    an hour before sunrise to 10:30, on a date roll by month (0.6 in January, 0.05 in July).
+  - *Night owl*: at Seattle night, one owl drawn inside the svg of one of the first five near
+    conifers or snags, at the top of the trunk, so it grows and sways with the tree and stays on
+    the same tree through a resize. It blinks.
+  - *Sasquatch*: on about 1 visit in 200 (a roll on the visit seed), 35 s in, a faint figure
+    walks 22% of the stand behind the mid trees over 48 s, following the ground line, and fades
+    out. Under reduced motion it stands still instead.
+  - *Snow*: December to February, on a date roll of 1 in 12 (about 7 days a winter), slow flakes
+    replace the rain and the mountain is hidden. An explicit `?rain=on` beats an automatic snow
+    day, so rain checks hold all year.
+  Day rolls use the date with a per-touch salt, so every visitor sees the same day and the rolls
+  are independent of the rain roll. QA overrides: `?snow= ?mountain= ?crows= ?mist= ?owl=
+  ?sasquatch=` (`on|off`). Stand-level pieces are re-added after each density rebuild and their
+  fades subtract `--age`. Styles are in `overrides.css`. `AC-PNW-1` to `AC-PNW-5` (browser),
+  `AC-PNW-6` (rolls over ten years of dates, in `verify-static.mjs`).
 - **Copy (owner, 2026-11-01).** 16384.dev is described only as a "self-hosted forge" (no provenance
   claim yet). akl.run is "toys & experiments" everywhere, matching the visible link text.
 - **Fonts.** Import only `@fontsource/ibm-plex-mono/latin-400.css` and `latin-500.css`.

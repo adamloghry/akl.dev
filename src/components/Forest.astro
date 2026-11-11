@@ -1,7 +1,8 @@
 ---
 // Forest.astro — the fixed, behind-the-text stand. All visuals are CSS; geometry comes from forest.js at runtime.
 // The seed is random per visit by design (the owner likes every load to be a different stand).
-// Query overrides for QA: ?seed=N  ?rain=on|off  ?moon=on|off
+// Query overrides for QA: ?seed=N  ?rain=on|off  ?moon=on|off, and for the Seattle touches (seattle.ts)
+// ?snow= ?mountain= ?crows= ?mist= ?owl= ?sasquatch= (each on|off).
 ---
 <svg class="moon" id="moon" viewBox="0 0 40 40" aria-hidden="true">
   <path d="M20 4 A16 16 0 1 0 20 36 A12.5 12.5 0 1 1 20 4 Z" fill="none" stroke="currentColor" stroke-width="0.9" stroke-linejoin="round"></path>
@@ -17,12 +18,13 @@
   import { fitStandTall } from '../scripts/fit';
   import { sweepGust } from '../scripts/gust';
   import { pauseWhenHidden } from '../scripts/pause';
+  import { buildCrows, buildSnow, decide, dressStand } from '../scripts/seattle';
   import { buildStand } from '../scripts/stand';
 
   // Density (owner, docs/design.md section 3). The handoff's counts are fixed, so a wide stand is a sparse one.
   // Counts scale with the stand's layout width (innerWidth / --fs) from the width the design was drawn at,
   // never below the handoff's counts. Rain is not inside the scaled stand, so it scales with the window width.
-  const REF_STAND_W = 1950, REF_RAIN_W = 1440, MAX_DENSITY = 3, REBUILD_AT = 0.2;
+  const REF_STAND_W = 1950, REF_RAIN_W = 1440, MAX_DENSITY = 3, REBUILD_AT = 0.2, SNOW_COUNT = 60;
   const clampK = (k: number) => Math.min(MAX_DENSITY, Math.max(1, k));
   const standK = (fs: number) => clampK(innerWidth / fs / REF_STAND_W);
   const rainK = () => clampK(innerWidth / REF_RAIN_W);
@@ -34,10 +36,13 @@
 
   const q = new URLSearchParams(location.search);
   const now = seattleNow();
-  const rainOn = q.has('rain') ? q.get('rain') !== 'off' : wxRain(now);
   const night  = q.has('moon') ? q.get('moon') !== 'off' : wxNight(now);
   let seed = randomSeed();
   if (q.has('seed')) seed = parseInt(q.get('seed')!, 10) >>> 0;
+  // Seattle touches (seattle.ts): the mountain, crows, mist, owl, sasquatch and snow. Snow replaces rain, so the final
+  // rain state comes from decide().
+  const touches = decide(now, seed, q.has('rain') ? q.get('rain') !== 'off' : wxRain(now), q);
+  const rainOn = touches.rain;
 
   const stand = document.getElementById('stand')!;
   const rain = document.getElementById('rain')!;
@@ -50,15 +55,18 @@
   const fit = () => {
     const k = standK(fitStandTall(stand, main!));
     if (builtK && Math.abs(k / builtK - 1) <= REBUILD_AT) return;
-    const cfg = scaled(k);
-    stand.style.setProperty('--age', ((performance.now() - born) / 1000).toFixed(1) + 's');
+    const cfg = scaled(k), age = (performance.now() - born) / 1000;
+    stand.style.setProperty('--age', age.toFixed(1) + 's');
     stand.replaceChildren(); rain.replaceChildren();
     buildStand(stand, seed, cfg);
     sweepGust(stand, rain);
+    dressStand(stand, seed, touches, age);
     if (rainOn) buildRain(rain, seed ^ 0x9e3779b9, cfg);
+    if (touches.snow) buildSnow(rain, seed, Math.round(SNOW_COUNT * rainK()));
     builtK = k;
   };
   fit();
+  if (touches.crows) buildCrows(document.getElementById('forest')!, seed);
 
   const moon = document.getElementById('moon')!;
   const isDark = () => {
