@@ -41,7 +41,7 @@ links, tokens, layout or forest behaviour without the owner).
   AC-COPY-3, AC-NAV-3). `scripts/verify.mjs` - Playwright acceptance suite
   (includes AC-CSP-*). `scripts/og.mjs` - regenerates `public/og.png`
   (`npm run og`).
-- `flake.nix`, `flake.lock`, `nix/treefmt.nix`, `.envrc`, `.node-version`,
+- `wrangler.json`, `flake.nix`, `flake.lock`, `nix/treefmt.nix`, `.envrc`, `.node-version`,
   `renovate.json`, `.github/workflows/{nix,verify}.yml`.
 - `docs/handoff/` - the design handoff (README, docs 01-09, `reference/`). Do
   not edit `docs/` or `reference/` (only README section 5 tracks known gaps).
@@ -104,11 +104,18 @@ Headers live in `public/_headers`, never in `<meta http-equiv>`. There is no
 
 ## Deploy
 
-- Production is Cloudflare Pages Git integration from `trunk`: it runs
-  `npm clean-install && npm run build`, outside nix. Its Node comes from
-  `.node-version`; keep it in step with the flake's Node major. Any other
-  branch gets a preview deployment. Never push from an agent; the owner
-  creates the repo and pushes.
+- Production is a Cloudflare **Worker serving static assets** (Workers Builds
+  Git integration, Worker `akl-dev`), not a Pages project, though `_headers`
+  and `_redirects` work the same. It runs `npm clean-install && npm run build`
+  outside nix, then `npx wrangler deploy` on `trunk` and `npx wrangler preview`
+  on any other branch. Its Node comes from `.node-version`; keep it in step
+  with the flake's Node major. Never push from an agent unless the owner asks.
+- `wrangler.json` is that Worker's config: `name` must stay `akl-dev`,
+  `assets.directory` is `./dist`, `not_found_handling: "404-page"` serves
+  `404.html` for unknown paths, and the `previews` block (empty is fine) is
+  required by `wrangler preview`; without it every branch build fails at the
+  deploy step (`AC-DEPLOY-1`). `docs/runbook.md` section 2 and
+  `nix run .#deploy` still describe Pages and predate this.
 - `nix run .#deploy` uploads `result/` (or `dist/`) with wrangler, bypassing the
   Git integration. Needs `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`,
   `CLOUDFLARE_PROJECT_NAME`. It passes `--branch` = the current git branch, so

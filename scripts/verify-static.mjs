@@ -26,6 +26,12 @@ const links = [...src.replace(/<!--[\s\S]*?-->/g, '').matchAll(/href="([^"]+)"/g
 const absent = [role, bio, ...links].filter(s => !md.includes(s.replace(/\.$/, '')));
 ok('AC-COPY-3', links.length === 8 && absent.length === 0, 'index.html.md in sync with index.astro' + (absent.length ? ' (missing: ' + absent.join(' | ') + ')' : ''));
 
+// AC-DEPLOY-1: the Worker config Cloudflare's Workers Builds deploys with. `wrangler preview` (every non-trunk branch)
+// refuses to run without a `previews` block, and 404-page is what serves 404.html for unknown paths.
+const wr = JSON.parse(await read('wrangler.json'));
+ok('AC-DEPLOY-1', wr.name === 'akl-dev' && wr.assets?.directory === './dist' && wr.assets?.not_found_handling === '404-page' && typeof wr.previews === 'object' && wr.previews !== null
+  && /^\d{4}-\d\d-\d\d$/.test(wr.compatibility_date ?? ''), 'wrangler.json: Worker akl-dev serves ./dist with the 404 page and has a previews block');
+
 // AC-NAV-3: webfinger for akl@akl.dev hands off to hachyderm.
 const redirects = await read('dist/_redirects');
 ok('AC-NAV-3', /^\/\.well-known\/webfinger\s+https:\/\/hachyderm\.io\/\.well-known\/webfinger\?resource=acct:akl@hachyderm\.io\s+302$/m.test(redirects), 'webfinger redirect present');
