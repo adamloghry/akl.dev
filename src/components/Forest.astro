@@ -1,7 +1,8 @@
 ---
 // Forest.astro — the fixed, behind-the-text stand. All visuals are CSS; geometry comes from forest.js at runtime.
 // The seed is random per visit by design (the owner likes every load to be a different stand).
-// Query overrides for QA: ?seed=N  ?rain=on|off  ?moon=on|off
+// Query overrides for QA: ?seed=N  ?rain=on|off  ?moon=on|off, and for the Seattle touches (seattle.ts)
+// ?snow= ?mountain= ?crows= ?mist= ?owl= ?sasquatch= (each on|off).
 ---
 <svg class="moon" id="moon" viewBox="0 0 40 40" aria-hidden="true">
   <path d="M20 4 A16 16 0 1 0 20 36 A12.5 12.5 0 1 1 20 4 Z" fill="none" stroke="currentColor" stroke-width="0.9" stroke-linejoin="round"></path>
@@ -13,19 +14,69 @@
 </div>
 
 <script>
-  import { buildForest, buildRain, fitStand, seattleNow, wxRain, wxNight, randomSeed } from '../scripts/forest.js';
+  import { DEFAULT_CONFIG, buildRain, seattleNow, wxRain, wxNight, randomSeed } from '../scripts/forest.js';
+  import { fitStandTall } from '../scripts/fit';
+  import { sweepGust } from '../scripts/gust';
+  import { pauseWhenHidden } from '../scripts/pause';
+  import { buildCrows, buildSnow, decide, dressStand } from '../scripts/seattle';
+  import { buildStand } from '../scripts/stand';
+
+  // Density (owner, docs/design.md section 3). The handoff's counts are fixed, so a wide stand is a sparse one.
+  // Counts scale with the stand's layout width (innerWidth / --fs) from the width the design was drawn at,
+  // never below the handoff's counts. Rain is not inside the scaled stand, so it scales with the window width.
+  const REF_STAND_W = 1950, REF_RAIN_W = 1440, MAX_DENSITY = 3, REBUILD_AT = 0.2, SNOW_COUNT = 60;
+  const clampK = (k: number) => Math.min(MAX_DENSITY, Math.max(1, k));
+  const standK = (fs: number) => clampK(innerWidth / fs / REF_STAND_W);
+  const rainK = () => clampK(innerWidth / REF_RAIN_W);
+  const scaled = (k: number) => ({
+    ...DEFAULT_CONFIG,
+    layers: DEFAULT_CONFIG.layers.map((L) => ({ ...L, count: Math.round(L.count * k) })),
+    rain: { ...DEFAULT_CONFIG.rain, count: Math.round(DEFAULT_CONFIG.rain.count * rainK()) },
+  });
 
   const q = new URLSearchParams(location.search);
   const now = seattleNow();
-  const rainOn = q.has('rain') ? q.get('rain') !== 'off' : wxRain(now);
   const night  = q.has('moon') ? q.get('moon') !== 'off' : wxNight(now);
   let seed = randomSeed();
   if (q.has('seed')) seed = parseInt(q.get('seed')!, 10) >>> 0;
+  // Seattle touches (seattle.ts): the mountain, crows, mist, owl, sasquatch and snow. Snow replaces rain, so the final
+  // rain state comes from decide().
+  const touches = decide(now, seed, q.has('rain') ? q.get('rain') !== 'off' : wxRain(now), q);
+  const rainOn = touches.rain;
 
-  const stand = document.getElementById('stand');
+  const stand = document.getElementById('stand')!;
+  const rain = document.getElementById('rain')!;
   const main = document.querySelector('main');
-  buildForest(stand, seed);
-  if (rainOn) buildRain(document.getElementById('rain'), seed ^ 0x9e3779b9);
+  const born = performance.now();
+  let builtK = 0;
+  // Bring `box` to the particles in `fresh` without touching the ones already falling (restarting them would empty the
+  // sky for seconds). Both builders draw particle i from one stream in order, so it is the same whatever the count.
+  const topUp = (box: HTMLElement, fresh: DocumentFragment) => {
+    while (box.childElementCount > fresh.childElementCount) box.lastElementChild!.remove();
+    box.append(...[...fresh.children].slice(box.childElementCount));
+  };
+  // Fit first (the scale decides the stand's layout width), then build at that width's density. A resize that moves
+  // the density by more than REBUILD_AT rebuilds the stand from the same seed; --age (overrides.css) keeps a rebuilt
+  // stand as far along its grow-in as the page is, so nothing regrows from the ground. What depends only on the
+  // window width (gust timing, rain and snow counts) is refreshed on every fit, rebuild or not.
+  const fit = () => {
+    const k = standK(fitStandTall(stand, main!)), cfg = scaled(k);
+    if (!builtK || Math.abs(k / builtK - 1) > REBUILD_AT) {
+      const age = (performance.now() - born) / 1000;
+      stand.style.setProperty('--age', age.toFixed(1) + 's');
+      stand.replaceChildren();
+      buildStand(stand, seed, cfg);
+      dressStand(stand, seed, touches, age);
+      builtK = k;
+    }
+    sweepGust(stand, rain);
+    const sky = document.createDocumentFragment();
+    if (rainOn) buildRain(sky, seed ^ 0x9e3779b9, cfg);
+    if (touches.snow) buildSnow(sky, seed, Math.round(SNOW_COUNT * rainK()));
+    topUp(rain, sky);
+  };
+  fit();
+  if (touches.crows) buildCrows(document.getElementById('forest')!, seed);
 
   const moon = document.getElementById('moon')!;
   const isDark = () => {
@@ -37,8 +88,6 @@
   document.addEventListener('themechange', syncMoon);
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncMoon);
 
-  const fit = () => fitStand(stand, main);
-  fit();
   // iOS fires resize as the toolbar collapses while scrolling (innerHeight only): ignore small height-only changes.
   let t: ReturnType<typeof setTimeout>, lw = innerWidth, lh = innerHeight;
   addEventListener('resize', () => {
@@ -49,4 +98,5 @@
     }, 80);
   });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  pauseWhenHidden(document.getElementById('forest')!, moon);
 </script>

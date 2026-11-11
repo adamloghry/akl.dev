@@ -1,0 +1,87 @@
+/* overrides.css: owner-approved deltas from the handoff stylesheet. global.css stays byte-identical to
+   docs/handoff/reference/theme.css (AC-REF-1), so corrections live here. See docs/design.md section 3. */
+
+/* Ridge draw-on. The handoff reveals the ridge with stroke-dasharray:1 against pathLength="1". The path
+   also has vector-effect="non-scaling-stroke", which makes browsers measure dashes in screen px while
+   pathLength still normalises against the viewBox length (~1302 units), so the line stopped ~1300px in
+   and never reached the right edge on wider screens. A clip-path reveal has no length to get wrong.
+   The extra .stand in each selector outranks global.css whatever the bundle order. */
+.stand .ridge{clip-path:inset(0 100% 0 0);animation:ridge-reveal 14s ease-out calc(0s - var(--age,0s)) forwards}
+.stand .ridge path{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
+@keyframes ridge-reveal{to{clip-path:inset(0)}}
+
+/* Stand age. Forest.astro rebuilds the stand when a resize changes its density and sets --age to the seconds
+   since page load. Subtracting it from each delay resumes the grow-in where the page already is: trees that
+   had grown stay grown, the ridge stays drawn. --age is 0s on the first build. */
+.stand .tw{animation-delay:calc(var(--t) - var(--age,0s))}
+
+/* Hidden tab. pause.ts puts .tab-hidden on #forest and #moon while document.visibilityState is "hidden". Only the
+   infinite animations pause (sway and gust lean on .tree, gust skew on .rain, rain on .drop, drift on .moon, and
+   the Seattle loops at the end of this file): they
+   are periodic, so resuming mid-cycle is invisible. The one-shot grow-in (.tw) and ridge reveal are deliberately left
+   running so the stand finishes growing while the tab is away and --age (wall-clock seconds since load) stays accurate.
+   !important because an `animation` shorthand on a more specific selector (the gust rule below) resets the play state. */
+.forest.tab-hidden .tree,.forest.tab-hidden .rain,.forest.tab-hidden .drop,.moon.tab-hidden{animation-play-state:paused !important}
+
+/* Gust sweep. The handoff skews the whole .forest once per 38s, which on a wide window reads as the picture
+   tilting. Instead each swaying tree leans on the individual `rotate` property (it composes with sway's
+   `transform`, about the same trunk-base origin) to the same rhythm, delayed by --gx, the time the gust
+   front takes to reach it (gust.ts), so the lean rolls left to right with the wind. Only trees that already
+   sway take part: they are compositor layers anyway, so the gust adds none, and under 120px (.calm) a 1.6deg
+   lean moves a tip under 2px. Logs (.still) never move. Subtracting --age keeps the wind's phase across a
+   rebuild. The rain keeps the handoff's skew, timed for mid-sweep; positioned to fill .forest as before. The
+   rain box is never rebuilt, so its animation keeps running from page load and must not subtract --age. */
+.page .forest{animation:none}
+.stand .tree:not(.calm):not(.still){animation:sway var(--sd) ease-in-out var(--st) infinite alternate,gust-lean 38s ease-in-out calc(6s + var(--gx,0s) - var(--age,0s)) infinite}
+.forest .rain{position:absolute;inset:0;transform-origin:50% 100%;animation:gust 38s ease-in-out calc(6s + var(--gx,0s)) infinite}
+@keyframes gust-lean{0%,62%,100%{rotate:0deg}66%{rotate:1.6deg}71%{rotate:.5deg}75%{rotate:1.1deg}86%{rotate:0deg}}
+
+/* Seattle touches (seattle.ts decides what shows and builds the elements; docs/design.md section 3).
+   One-shot fades subtract --age like the grow-in, so a resize rebuild does not replay them. */
+@keyframes pnw-fade{to{opacity:var(--o,1)}}
+
+/* The mountain is out: Rainier behind every tree on dry days, its base just above the ridge's crest and its summit
+   above the far and mid layers (but below the near trees, so it stays under the text like they do). The mask fades
+   the foot of each slope out instead of leaving it ending in mid-air above the ridge. */
+.stand .mountain{left:60%;bottom:84px;width:clamp(520px,62%,1500px);margin-left:calc(clamp(520px,62%,1500px) / -2);color:var(--l1);--o:.6;-webkit-mask-image:linear-gradient(to bottom,#000 62%,transparent);mask-image:linear-gradient(to bottom,#000 62%,transparent);opacity:0;animation:pnw-fade 24s ease-out calc(3s - var(--age,0s)) forwards}
+.mountain path{stroke-width:1.1}
+.mountain .glacier{stroke-width:.6;opacity:.6}
+
+/* Morning mist: bands of the page colour between the far and near layers, so the far trees fade into it. */
+.stand .mist{position:absolute;left:-20%;width:140%;opacity:0;background:linear-gradient(to bottom,transparent,color-mix(in srgb,var(--bg) 86%,transparent) 42%,color-mix(in srgb,var(--bg) 86%,transparent) 60%,transparent);animation:pnw-fade 30s ease-out calc(6s - var(--age,0s)) forwards,mist-drift var(--d) ease-in-out var(--t) infinite alternate}
+@keyframes mist-drift{from{transform:translateX(-5%)}to{transform:translateX(5%)}}
+
+/* Night owl: drawn inside its tree's svg, so it grows and sways with the perch; it appears once the tree has grown. */
+.stand .perch{overflow:visible}
+.owl{opacity:0;animation:pnw-fade 3s ease-out calc(var(--t) + var(--d) - var(--age,0s)) forwards}
+.owl path{stroke-width:.9}
+.owl .owl-body{fill:var(--bg)}
+.owl-eyes{transform-box:fill-box;transform-origin:50% 50%;animation:owl-blink 7s linear 9s infinite}
+@keyframes owl-blink{0%,95%,100%{transform:scaleY(1)}97.5%{transform:scaleY(.1)}}
+
+/* Sasquatch: the walk itself is a Web Animation (it follows the ground line), this is only the figure. */
+.stand .squatch{position:absolute;left:0;bottom:0;width:38px;height:86px;color:var(--l1);opacity:0}
+.stand .squatch.still{opacity:.35}
+.stand .squatch svg{left:0;top:0;width:100%;height:100%;overflow:visible;animation:squatch-bob .8s ease-in-out infinite alternate}
+.squatch path{stroke-width:1.1}
+@keyframes squatch-bob{from{transform:translateY(0)}to{transform:translateY(1.5px)}}
+
+/* Crows at dusk: each crosses right to left in the first 60% of its cycle, then waits off-screen (the extra 40px
+   keeps a 28px crow fully off a narrow window, where 6vw alone is less than its width). */
+.forest .crows{position:absolute;inset:0;color:var(--l2)}
+.crow{position:absolute;left:0;transform:translate(104vw,0);animation:crow-fly var(--d) linear var(--t) infinite}
+.crow svg{display:block;width:100%;overflow:visible;opacity:.9;animation:crow-flap var(--fd) ease-in-out infinite alternate}
+.crow path{stroke-width:1.1}
+@keyframes crow-fly{0%{transform:translate(104vw,0)}60%,100%{transform:translate(calc(-6vw - 40px),-1vh)}}
+@keyframes crow-flap{from{transform:scaleY(1)}to{transform:scaleY(.4)}}
+
+/* Snow: slow flakes in the rain box (so reduced motion hides them with the rain). Fall and sway use different properties. */
+.flake{color:var(--l1);opacity:calc(var(--rain-op) + .3);animation:snow-fall var(--d) linear var(--t) infinite,snow-sway 3.4s ease-in-out var(--t) infinite alternate}
+.flake path{stroke-width:.7}
+@keyframes snow-fall{to{translate:var(--dx) calc(100vh + 340px)}}
+@keyframes snow-sway{from{transform:translateX(-7px)}to{transform:translateX(7px)}}
+
+/* Hidden tab (see above): the Seattle loops pause too. The mist keeps its one-shot fade running and pauses only the drift. */
+.forest.tab-hidden :is(.crow,.crow svg,.flake,.owl-eyes,.squatch svg){animation-play-state:paused !important}
+.forest.tab-hidden .mist{animation-play-state:running,paused !important}
+@media (prefers-reduced-motion: reduce){.forest .crows{display:none}}

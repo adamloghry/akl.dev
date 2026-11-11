@@ -50,12 +50,13 @@ Run against the deployed site `https://akl.dev`. Use `?seed=1107` for reproducib
 
 ### Behaviour (real browser)
 
-- [ ] AC-LIVE-1: Trees grow from the ground over ~1 minute; skyline first, giants last; nothing pops in instantly (except under reduced motion). date: ____
-- [ ] AC-LIVE-2: Trees sway continuously with varied periods; a gust visibly leans the whole stand about every 38 s and the rain slants with it. date: ____
+- [ ] AC-LIVE-1: Trees grow from the ground over ~1 minute; skyline first, giants last; nothing pops in instantly (except under reduced motion). The ground line draws on left to right over ~14 s and ends at the right edge of the window, including on the widest monitor to hand. date: ____
+- [ ] AC-LIVE-2: Trees sway continuously with varied periods; about every 38 s a gust rolls across the stand from left to right (the taller trees lean as it passes; small trees and logs do not) and the rain slants with it. date: ____
+- [ ] AC-LIVE-2b: Seattle touches, forced with `?rain=off&mountain=on&crows=on&mist=on&owl=on&sasquatch=on` (then `?snow=on`): the mountain sits behind the trees, crows cross the sky, mist drifts through the mid trees, an owl appears on a near treetop once that tree has grown (30 to 100 s) and blinks, a figure walks behind the mid trees about 35 s in; the mountain takes about 27 s to fade in; with `?snow=on` flakes fall and there is no rain or mountain. date: ____
 - [ ] AC-LIVE-3: Scrolling moves the text; the forest stays put (desktop and phone). date: ____
 - [ ] AC-LIVE-4: Theme follows the OS with no override; the toggle overrides; reload keeps the override; clearing `localStorage.theme` returns to following the OS. No flash of wrong theme on reload. date: ____
 - [ ] AC-LIVE-5: At Seattle night, dark mode shows the crescent moon upper-right; in light mode it never shows. date: ____
-- [ ] AC-LIVE-6: Hovering or keyboard-focusing `email` reveals ` · akl@akl.io`. date: ____
+- [ ] AC-LIVE-6: Hovering or keyboard-focusing `email` does not reveal the address or shift the contact row; the link opens a `mailto:akl@akl.io` (owner override of D13, `docs/design.md` section 3). date: ____
 - [ ] AC-LIVE-7: Tab order: toggle → signal → email → bluesky → mastodon → linkedin → github → 16384.dev → toys → hammer. Focus ring visible on each. date: ____
 - [ ] AC-LIVE-8: Print preview: no forest, URLs shown after link text, colophon visible. date: ____
 - [ ] AC-LIVE-9: iOS Safari: forest sits under the text at load; rotating the phone re-fits. date: ____

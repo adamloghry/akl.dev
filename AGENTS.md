@@ -16,6 +16,20 @@ links, tokens, layout or forest behaviour without the owner).
   `docs/handoff/reference/forest.js`; do not edit or reformat.
 - `src/styles/global.css` - the design. Byte-identical to
   `docs/handoff/reference/theme.css`; do not edit or reformat.
+- `src/components/Forest.astro` also owns density: it scales the layer and rain
+  counts with width by passing a derived config to `forest.js`, and rebuilds
+  the stand on a large resize (`docs/design.md` section 3).
+- `src/scripts/{fit,stand,gust,pause}.ts` - owner deltas that wrap the
+  unmodified `forest.js`: the taller fit cap, per-layer seeding (so a resize
+  does not reshuffle trees), the left-to-right gust delays, and pausing loops in
+  hidden tabs. New forest behaviour goes in a module like these, not in
+  `forest.js`.
+- `src/scripts/seattle.ts` - the Seattle touches: Rainier on dry days, crows
+  at dusk, morning mist, a night owl, a rare sasquatch, rare winter snow. Each
+  has a `?name=on|off` override (`docs/design.md` section 3).
+- `src/styles/overrides.css` - owner-approved CSS deltas from the handoff
+  (the ridge draw-on, the stand's `--age`, the gust, pausing, the Seattle
+  touches). Imported after `global.css`; a correction to the design goes here, with a note in `docs/design.md` and a check in `verify.mjs`.
 - `public/` - served verbatim: `_headers` (security headers and CSP),
   `_redirects` (webfinger handoff to hachyderm), `index.html.md` (markdown twin
   of the page), `llms.txt`, `agents.txt`, `agents.json`, `humans.txt`,
@@ -27,7 +41,7 @@ links, tokens, layout or forest behaviour without the owner).
   AC-COPY-3, AC-NAV-3). `scripts/verify.mjs` - Playwright acceptance suite
   (includes AC-CSP-*). `scripts/og.mjs` - regenerates `public/og.png`
   (`npm run og`).
-- `flake.nix`, `flake.lock`, `nix/treefmt.nix`, `.envrc`, `.node-version`,
+- `wrangler.json`, `flake.nix`, `flake.lock`, `nix/treefmt.nix`, `.envrc`, `.node-version`,
   `renovate.json`, `.github/workflows/{nix,verify}.yml`.
 - `docs/handoff/` - the design handoff (README, docs 01-09, `reference/`). Do
   not edit `docs/` or `reference/` (only README section 5 tracks known gaps).
@@ -90,11 +104,18 @@ Headers live in `public/_headers`, never in `<meta http-equiv>`. There is no
 
 ## Deploy
 
-- Production is Cloudflare Pages Git integration from `trunk`: it runs
-  `npm clean-install && npm run build`, outside nix. Its Node comes from
-  `.node-version`; keep it in step with the flake's Node major. Any other
-  branch gets a preview deployment. Never push from an agent; the owner
-  creates the repo and pushes.
+- Production is a Cloudflare **Worker serving static assets** (Workers Builds
+  Git integration, Worker `akl-dev`), not a Pages project, though `_headers`
+  and `_redirects` work the same. It runs `npm clean-install && npm run build`
+  outside nix, then `npx wrangler deploy` on `trunk` and `npx wrangler preview`
+  on any other branch. Its Node comes from `.node-version`; keep it in step
+  with the flake's Node major. Never push from an agent unless the owner asks.
+- `wrangler.json` is that Worker's config: `name` must stay `akl-dev`,
+  `assets.directory` is `./dist`, `not_found_handling: "404-page"` serves
+  `404.html` for unknown paths, and the `previews` block (empty is fine) is
+  required by `wrangler preview`; without it every branch build fails at the
+  deploy step (`AC-DEPLOY-1`). `docs/runbook.md` section 2 and
+  `nix run .#deploy` still describe Pages and predate this.
 - `nix run .#deploy` uploads `result/` (or `dist/`) with wrangler, bypassing the
   Git integration. Needs `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`,
   `CLOUDFLARE_PROJECT_NAME`. It passes `--branch` = the current git branch, so
