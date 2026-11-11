@@ -77,6 +77,32 @@ for (const [w, h, scheme, label] of [[1440, 900, 'light', 'desktop-light'], [128
   ok('AC-THEME-1 ' + label, await p.evaluate(() => document.documentElement.getAttribute('data-theme') !== null && localStorage.getItem('theme') !== null), 'toggle sets data-theme + localStorage');
   await ctx.close();
 }
+// AC-FOREST-4: the finished ridge line reaches both edges at every width (owner, overrides the handoff's dash draw-on,
+// which stopped ~1300px in on wide screens). Trees and the colophon are hidden so only the ridge leaves ink in the strip.
+for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
+  const { p, ctx } = await page(w, h, 'light', '&rain=off&moon=off', true);
+  await p.evaluate(() => { for (const e of document.querySelectorAll('.tw,.foot')) e.style.display = 'none'; });
+  const shot = (await p.locator('.ridge').screenshot()).toString('base64');
+  const q = await ctx.newPage(); // about:blank: no CSP, so the data: image can be decoded onto a canvas
+  const cover = await q.evaluate(async b64 => {
+    const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode();
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+    const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+    const d = g.getImageData(0, 0, c.width, c.height).data; let cols = 0;
+    for (let x = 0; x < c.width; x++) for (let y = 0; y < c.height; y++) {
+      const i = (y * c.width + x) * 4;
+      if (Math.abs(d[i] - d[0]) + Math.abs(d[i + 1] - d[1]) + Math.abs(d[i + 2] - d[2]) > 12) { cols++; break; }
+    }
+    return cols / c.width;
+  }, shot);
+  ok(`AC-FOREST-4 ${w}x${h}`, cover > 0.98, `ridge spans the viewport (${Math.round(cover * 100)}% of columns inked)`);
+  await ctx.close();
+}
+{ const { p, ctx } = await page(1440, 900, 'light'); // motion allowed: half a second in, the ridge is still drawing on
+  const clip = await p.evaluate(() => getComputedStyle(document.querySelector('.ridge')).clipPath);
+  const right = parseFloat(clip.match(/^inset\(\S+ (\S+)/)?.[1] ?? '0');
+  ok('AC-FOREST-5', right > 0 && right < 100, `ridge draws on left to right (clip-path ${clip} at 0.5s)`);
+  await ctx.close(); }
 { const { p, ctx } = await page(1440, 900, 'light', '&rain=on', true);
   ok('AC-MOTION-1', await p.evaluate(() => getComputedStyle(document.querySelector('.rain')).display === 'none'), 'reduced motion hides rain');
   await ctx.close(); }

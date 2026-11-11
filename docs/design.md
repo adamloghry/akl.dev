@@ -61,6 +61,16 @@ the deltas from that handoff; where they conflict, this document wins.
   hover/focus").** The reveal shifted the contact row on hover, so the `email` link carries no
   `.addr` span; it stays a plain `mailto:`. The `.mail .addr` rules in `global.css` stay (AC-REF-1)
   and match nothing. `AC-NAV-4`: no `class="addr"` in `dist/index.html`.
+- **Ridge draw-on by clip-path (owner request, 2026-11-10; corrects handoff 01 "ridge: one path,
+  `stroke-dasharray/offset` draw-on").** The ridge path has `vector-effect="non-scaling-stroke"`,
+  so browsers measure its dashes in screen px, while `pathLength="1"` still normalises against the
+  viewBox length (~1302 units). The line therefore stopped ~1300px in: 67% of a 1440px window, 51%
+  of 2560px, in Chromium and Firefox alike. `src/styles/overrides.css` (imported after `global.css`
+  in `Base.astro`) cancels the dash animation and reveals `.ridge` with an animated
+  `clip-path: inset()` instead: same 14 s ease-out, left to right, independent of width.
+  `global.css` and `forest.js` stay byte-identical (AC-REF-1); the dash rules and `pathLength` are
+  inert. `AC-FOREST-4`: the finished ridge inks >98% of columns at 1440, 2560 and 3840px wide.
+  `AC-FOREST-5`: the reveal is in progress half a second after load.
 - **Copy (owner, 2026-11-01).** 16384.dev is described only as a "self-hosted forge" (no provenance
   claim yet). akl.run is "toys & experiments" everywhere, matching the visible link text.
 - **Fonts.** Import only `@fontsource/ibm-plex-mono/latin-400.css` and `latin-500.css`.

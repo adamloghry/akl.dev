@@ -1,0 +1,11 @@
+/* overrides.css: owner-approved deltas from the handoff stylesheet. global.css stays byte-identical to
+   docs/handoff/reference/theme.css (AC-REF-1), so corrections live here. See docs/design.md section 3. */
+
+/* Ridge draw-on. The handoff reveals the ridge with stroke-dasharray:1 against pathLength="1". The path
+   also has vector-effect="non-scaling-stroke", which makes browsers measure dashes in screen px while
+   pathLength still normalises against the viewBox length (~1302 units), so the line stopped ~1300px in
+   and never reached the right edge on wider screens. A clip-path reveal has no length to get wrong.
+   The extra .stand in each selector outranks global.css whatever the bundle order. */
+.stand .ridge{clip-path:inset(0 100% 0 0);animation:ridge-reveal 14s ease-out forwards}
+.stand .ridge path{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
+@keyframes ridge-reveal{to{clip-path:inset(0)}}

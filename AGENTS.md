@@ -16,6 +16,9 @@ links, tokens, layout or forest behaviour without the owner).
   `docs/handoff/reference/forest.js`; do not edit or reformat.
 - `src/styles/global.css` - the design. Byte-identical to
   `docs/handoff/reference/theme.css`; do not edit or reformat.
+- `src/styles/overrides.css` - owner-approved CSS deltas from the handoff
+  (today: the ridge draw-on). Imported after `global.css`; a correction to the
+  design goes here, with a note in `docs/design.md` and a check in `verify.mjs`.
 - `public/` - served verbatim: `_headers` (security headers and CSP),
   `_redirects` (webfinger handoff to hachyderm), `index.html.md` (markdown twin
   of the page), `llms.txt`, `agents.txt`, `agents.json`, `humans.txt`,
