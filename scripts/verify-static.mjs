@@ -43,11 +43,12 @@ for (const [a, b] of [['src/scripts/forest.js', 'docs/handoff/reference/forest.j
 // AC-PNW-6: the Seattle touch rolls (src/scripts/seattle.ts; Node strips its types) behave as documented over ten years of dates.
 { const { snowDay, mistMorning, crowsHour, decide, P_SASQUATCH } = await import(new URL('src/scripts/seattle.ts', root));
   const Q = s => new URLSearchParams(s);
-  let winter = 0, snow = 0, offSeason = 0, firstSnow = null;
+  let winter = 0, snow = 0, offSeason = 0, firstSnow = null, misty = 0, mistLate = 0, days = 0;
   for (let t = Date.UTC(2026, 0, 1); t < Date.UTC(2036, 0, 1); t += 864e5) {
     const D = new Date(t), now = { y: D.getUTCFullYear(), m: D.getUTCMonth() + 1, d: D.getUTCDate(), h: 12 };
     const isWinter = now.m === 12 || now.m <= 2; if (isWinter) winter++;
     if (snowDay(now)) { snow++; if (!isWinter) offSeason++; firstSnow ??= now; }
+    days++; if (mistMorning({ ...now, h: 8.5 })) { misty++; if (mistMorning({ ...now, h: 11 })) mistLate++; }
   }
   ok('AC-PNW-6 snow', offSeason === 0 && snow / winter > 0.04 && snow / winter < 0.13, `snow only Dec to Feb, on ${(100 * snow / winter).toFixed(1)}% of winter days (${snow} in 10 years)`);
   const auto = decide(firstSnow, 1, true, Q('')), forced = decide(firstSnow, 1, true, Q('rain=on'));
@@ -56,6 +57,7 @@ for (const [a, b] of [['src/scripts/forest.js', 'docs/handoff/reference/forest.j
   ok('AC-PNW-6 clock', noon.mountain && !wet.mountain && !noon.crows && !noon.owl && !noon.mist && !noon.snow && crowsHour({ ...july, h: 20.5 }) && !crowsHour({ ...july, h: 21.6 })
     && decide({ ...july, h: 23 }, 1, false, Q('')).owl && !mistMorning({ y: 2026, m: 11, d: 3, h: 14 }),
     'dry noon shows only the mountain; rain hides it; crows fly around sunset; the owl is out at night; no mist after morning');
+  ok('AC-PNW-6 mist', misty / days > 0.2 && misty / days < 0.5 && mistLate === 0, `mist on ${(100 * misty / days).toFixed(0)}% of mornings at 08:30, and never still there at 11:00`);
   let squatch = 0; const N = 40000; for (let i = 0; i < N; i++) if (decide(july, i * 2654435761 >>> 0, false, Q('')).sasquatch) squatch++;
   ok('AC-PNW-6 sasquatch', squatch / N > P_SASQUATCH / 2 && squatch / N < P_SASQUATCH * 2, `sasquatch on about 1 visit in ${Math.round(N / squatch)}`);
 }

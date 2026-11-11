@@ -1,5 +1,6 @@
 // pause.ts: mark the forest and the moon while the document is hidden (background tab, minimised or occluded window).
-// overrides.css pauses only the infinite animations (gust, sway, rain, moon drift) under that class. The one-shot
+// overrides.css pauses only the infinite animations (sway, gust, rain, moon drift, and the Seattle loops: crows,
+// flakes, mist drift, owl blink, sasquatch bob) under that class. The one-shot
 // grow-in and ridge reveal keep running on wall-clock time, so the stand finishes growing while the tab is away and
 // a resize rebuild's --age (seconds since load) stays true. See docs/design.md section 3.
 export function pauseWhenHidden(...els: Element[]): void {

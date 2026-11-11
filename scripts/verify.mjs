@@ -104,7 +104,7 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
 // AC-FOREST-9: a tall window scales the stand past the handoff's cap of 1 (owner, src/scripts/fit.ts), up to MAX_FS, to fill the
 // band under the text, and the near layer stays below the text (AC-FOREST-2's measurement on the fully grown stand, in dark,
 // where --boost does not lift the giants past the opacity filter). The 1440x900 design keeps its scale.
-{ const MAX_FS = 1.5; // keep in step with src/scripts/fit.ts
+{ const { MAX_FS } = await import('../src/scripts/fit.ts'); // Node strips the types
   const fit = async (w, h) => { const { p, ctx } = await page(w, h, 'dark', '&rain=off&moon=off', true);
     const r = await p.evaluate(() => {
       const trees = [...document.querySelectorAll('.tree:not(.still)')].filter(t => parseFloat(getComputedStyle(t).opacity) > 0.2);
@@ -138,18 +138,33 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
 // AC-FOREST-6 / AC-RAIN-3: density follows width (owner). The design width keeps the handoff's 291 elements and 70 drops;
 // a wide stand gets proportionally more, so elements per 1000px of stand stay near the design's ~150. 3840x1100 is wide but
 // short, so --fs stays ~1 and width alone sets the density (a tall 4K window scales the stand up instead, AC-FOREST-9).
-// AC-FOREST-7: a resize that changes the density rebuilds the stand already grown (--age), not from the ground.
+// AC-FOREST-7: a resize that changes the density rebuilds the stand already grown, not from the ground: each tree's grow
+// delay and the ridge reveal are shifted back by the page's age, the gust keeps one phase across trees and rain, and the
+// rain already falling is kept (topped up), not restarted. Trees and rain sit ~0.15s apart whatever happens (the rain's
+// animation starts at page parse, the stand is built by the module script just after), hence the half-second allowance.
 { const { p, ctx } = await page(1440, 900, 'light', '&rain=on');
   const stat = () => p.evaluate(() => { const s = document.getElementById('stand');
     return { n: s.querySelectorAll('.tw').length, ridges: s.querySelectorAll('.ridge').length, drops: document.querySelectorAll('.drop').length,
       per: s.querySelectorAll('.tw').length / (innerWidth / parseFloat(getComputedStyle(s).getPropertyValue('--fs'))) * 1000, age: parseFloat(s.style.getPropertyValue('--age')) }; });
+  // Timing after a rebuild, in ms. grow/ridge: how far the delay is from "its own delay minus the stand's age" (0 = aged
+  // correctly). gust: the gap between a tree's and the rain's position in the gust cycle once each one's --gx is removed.
+  const timing = () => p.evaluate(() => { const s = document.getElementById('stand'), age = parseFloat(s.style.getPropertyValue('--age')) * 1000;
+    const anim = (e, n) => e.getAnimations().find(a => a.animationName === n), delay = a => a.effect.getTiming().delay;
+    const tw = s.querySelector('.tw:not(.still)'), tree = [...s.querySelectorAll('.tree')].find(t => anim(t, 'gust-lean')), rain = document.getElementById('rain');
+    const cycle = (a, e) => a.currentTime - delay(a) + parseFloat(e.style.getPropertyValue('--gx')) * 1000;
+    return { grow: delay(anim(tw, 'grow')) - (parseFloat(tw.style.getPropertyValue('--t')) * 1000 - age), ridge: delay(anim(s.querySelector('.ridge'), 'ridge-reveal')) + age,
+      gust: cycle(anim(tree, 'gust-lean'), tree.parentElement) - cycle(anim(rain, 'gust'), rain), kept: document.querySelector('.drop').dataset.kept === '1' }; });
   const a = await stat();
+  await p.evaluate(() => { document.querySelector('.drop').dataset.kept = '1'; });
+  await p.waitForTimeout(1500); // let the page age, so a rebuild that mishandles --age is seconds out, not a rounding error
   ok('AC-FOREST-6 1440x900', a.n === 291 && a.drops === 70, `design width keeps the handoff counts (${a.n} elements, ${a.drops} drops)`);
   await p.setViewportSize({ width: 3840, height: 1100 }); await p.waitForTimeout(400);
   const z = await stat();
   ok('AC-FOREST-6 3840x1100', z.n > 291 * 1.8 && Math.abs(z.per / a.per - 1) < 0.1, `wide stand keeps the design density (${z.n} elements, ${Math.round(z.per)} vs ${Math.round(a.per)} per 1000px)`);
   ok('AC-RAIN-3', z.drops === Math.round(70 * 3840 / 1440), `rain scales with window width (${z.drops} drops)`);
-  ok('AC-FOREST-7', z.ridges === 1 && z.age > 0, `resize rebuilds one stand, aged ${z.age}s so it does not regrow`);
+  const t = await timing();
+  ok('AC-FOREST-7', z.ridges === 1 && z.age > 1.5 && Math.abs(t.grow) < 2 && Math.abs(t.ridge) < 2 && Math.abs(t.gust) < 500 && t.kept,
+    `resize rebuilds one stand aged ${z.age}s: grow and ridge delays shifted by the age (off by ${t.grow.toFixed(1)} and ${t.ridge.toFixed(1)}ms), trees and rain in one gust phase (${Math.round(t.gust)}ms apart), falling rain kept`);
   await ctx.close(); }
 // AC-FOREST-8: a density rebuild keeps every existing element (same left and path) and only adds; same seed and viewport
 // give the same stand. Each layer draws from its own seeded stream (src/scripts/stand.ts), so counts do not reshuffle it.
@@ -175,31 +190,48 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
   const rainAuto = await p.evaluate(() => document.querySelectorAll('.drop').length);
   ok('AC-RAIN-2', rainAuto === 0 || rainAuto === 70, 'rain auto resolves to all-or-nothing (' + rainAuto + ')');
   await ctx.close(); }
-// AC-PAUSE-1: while the document is hidden the infinite animations (sway, rain, gust, moon drift) pause and the one-shot
-// grow-in keeps running; on return they all run again. visibilityState is faked: Playwright pages are always visible.
-{ const { p, ctx } = await page(1440, 900, 'dark', '&rain=on&moon=on');
+// AC-PAUSE-1: while the document is hidden the infinite animations (sway, rain, gust, moon drift, and the Seattle loops) pause
+// and the one-shot grow-in and mist fade keep running; on return they all run again. visibilityState is faked: Playwright
+// pages are always visible.
+{ const { p, ctx } = await page(1440, 900, 'dark', '&rain=on&moon=on&snow=off&crows=on&owl=on&mist=on&sasquatch=on');
   const states = (hidden) => p.evaluate(h => {
     for (const [k, v] of [['visibilityState', h ? 'hidden' : 'visible'], ['hidden', h]]) Object.defineProperty(document, k, { configurable: true, get: () => v });
     document.dispatchEvent(new Event('visibilitychange'));
     // A swaying tree runs two animations (sway, gust lean), so its play state is a list: collapse it to the distinct values.
     const s = sel => [...new Set(getComputedStyle(document.querySelector(sel)).animationPlayState.split(', '))].join('+');
-    return { tree: s('.tree:not(.still):not(.calm)'), drop: s('.drop'), rain: s('#rain'), moon: s('#moon'), grow: s('.tw:not(.still)') };
+    return { tree: s('.tree:not(.still):not(.calm)'), drop: s('.drop'), rain: s('#rain'), moon: s('#moon'), crow: s('.crow'), flap: s('.crow svg'), owl: s('.owl-eyes'), squatch: s('.squatch svg'),
+      mist: s('.mist'), grow: s('.tw:not(.still)') };
   }, hidden);
   const h = await states(true), v = await states(false);
-  ok('AC-PAUSE-1 hidden', h.tree === 'paused' && h.drop === 'paused' && h.rain === 'paused' && h.moon === 'paused' && h.grow === 'running', `hidden pauses the loops, not the grow-in (${JSON.stringify(h)})`);
+  ok('AC-PAUSE-1 hidden', ['tree', 'drop', 'rain', 'moon', 'crow', 'flap', 'owl', 'squatch'].every(k => h[k] === 'paused') && h.mist === 'running+paused' && h.grow === 'running',
+    `hidden pauses the loops, not the grow-in or the mist fade (${JSON.stringify(h)})`);
   ok('AC-PAUSE-1 visible', Object.values(v).every(x => x === 'running'), `visible resumes them (${JSON.stringify(v)})`);
   await ctx.close(); }
 // AC-PNW-*: the Seattle touches (owner; src/scripts/seattle.ts), driven by their QA overrides so the clock does not matter.
 const pnw = p => p.evaluate(() => { const s = document.getElementById('stand'), n = sel => document.querySelectorAll(sel).length, owl = document.querySelector('.owl'), crows = document.querySelector('.crows');
   return { mountain: n('.mountain'), mountainFirst: s.firstElementChild?.classList.contains('mountain') ?? false, mist: n('.mist'), owl: n('.owl'), squatch: n('.squatch'), still: n('.squatch.still'), crows: n('.crow'),
-    flakes: n('.flake'), drops: n('.drop'), perch: owl ? owl.parentElement.style.color + '@' + owl.parentElement.parentElement.style.left : '', crowsShown: crows ? getComputedStyle(crows).display : '' }; });
+    mistBefore: document.querySelector('.mist ~ .tw > svg')?.style.color ?? '', squatchBefore: document.querySelector('.squatch + .tw > svg')?.style.color ?? '',
+    overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth, flakes: n('.flake'), drops: n('.drop'), perch: owl ? owl.parentElement.style.color + '@' + owl.parentElement.parentElement.style.left : '', crowsShown: crows ? getComputedStyle(crows).display : '' }; });
 { const { p, ctx, errs } = await page(1440, 900, 'dark', '&rain=off&snow=off&mountain=on&mist=on&owl=on&sasquatch=on&crows=on');
   const a = await pnw(p), csp = await p.evaluate(() => window.__csp);
-  ok('AC-PNW-1', a.mountain === 1 && a.mountainFirst && a.mist === 3 && a.owl === 1 && a.perch.startsWith('var(--l4)@') && a.squatch === 1 && a.crows >= 5 && a.crows <= 9 && errs.length === 0 && csp.length === 0,
-    `each touch appears once: mountain behind everything, 3 mist bands, owl on a near tree (${a.perch}), sasquatch, ${a.crows} crows; no errors or CSP violations`);
+  ok('AC-PNW-1', a.mountain === 1 && a.mountainFirst && a.mist === 3 && a.mistBefore === 'var(--l3)' && a.owl === 1 && a.perch.startsWith('var(--l4)@') && a.squatch === 1 && a.squatchBefore === 'var(--l2)'
+    && a.crows >= 5 && a.crows <= 9 && !a.overflowX && errs.length === 0 && csp.length === 0,
+    `each touch appears once: mountain behind everything, 3 mist bands in front of the mid trees, owl on a near tree (${a.perch}), sasquatch behind the mid trees, ${a.crows} crows; no overflow, errors or CSP violations`);
   await p.setViewportSize({ width: 3840, height: 1100 }); await p.waitForTimeout(400);
   const z = await pnw(p);
-  ok('AC-PNW-2', z.mountain === 1 && z.mountainFirst && z.mist === 3 && z.owl === 1 && z.perch === a.perch && z.squatch === 1 && z.crows === a.crows, `a resize rebuild keeps one of each and the owl on the same tree (${z.perch})`);
+  ok('AC-PNW-2', z.mountain === 1 && z.mountainFirst && z.mist === 3 && z.mistBefore === 'var(--l3)' && z.owl === 1 && z.perch === a.perch && z.squatch === 1 && z.squatchBefore === 'var(--l2)' && z.crows === a.crows, `a resize rebuild keeps one of each and the owl on the same tree (${z.perch})`);
+  await ctx.close(); }
+// AC-FOREST-10: a resize that does not rebuild the stand (here it stays at the 1.5 scale cap and the handoff counts) still
+// refreshes what depends on the window width: the rain count, the gust's crossing time, and the sasquatch stays a
+// percentage of the stand so it keeps to the ground line.
+{ const { p, ctx } = await page(1200, 1440, 'light', '&rain=on&sasquatch=on');
+  const stat = () => p.evaluate(() => ({ n: document.querySelectorAll('.tw').length, drops: document.querySelectorAll('.drop').length, first: document.querySelector('.tw').dataset.kept ?? '',
+    gx: Math.max(...[...document.querySelectorAll('.tw')].map(e => parseFloat(e.style.getPropertyValue('--gx')))), walk: document.querySelector('.squatch').getAnimations()[0].effect.getKeyframes()[0].left }));
+  const a = await stat(); await p.evaluate(() => { document.querySelector('.tw').dataset.kept = '1'; });
+  await p.setViewportSize({ width: 2800, height: 1440 }); await p.waitForTimeout(400);
+  const z = await stat();
+  ok('AC-FOREST-10', z.first === '1' && z.n === a.n && a.drops === 70 && z.drops === Math.round(70 * 2800 / 1440) && z.gx > 3.2 && a.gx < 1.6 && z.walk.endsWith('%') && z.walk === a.walk,
+    `no rebuild (${z.n} elements kept), yet rain ${a.drops} -> ${z.drops} drops, gust crossing ${a.gx}s -> ${z.gx}s, sasquatch at ${z.walk} of the stand`);
   await ctx.close(); }
 { const { p, ctx } = await page(1440, 900, 'dark', '&snow=on');
   const a = await pnw(p);

@@ -9,7 +9,7 @@
  *   snow       rare winter days, instead of rain
  *
  * Like the rain, every decision comes from the Seattle clock and seeded rolls: no network. forest.js is
- * not modified; this module only adds elements beside what buildForest produced. All visuals are in
+ * not modified; this module adds elements beside what buildForest produced (the owl goes inside its tree's svg). All visuals are in
  * overrides.css. Day-level rolls (snow, mist) use the date so every visitor sees the same day.
  */
 import { DEFAULT_CONFIG, mulberry, wxNight } from './forest.js';
@@ -125,46 +125,48 @@ export function dressStand(stand: HTMLElement, seed: number, t: Touches, age = 0
     if (pick) { pick.s.appendChild(owl(pick.top![1], pick.top![2])); pick.s.classList.add('perch'); }
   }
 
-  if (t.sasquatch && age < SQUATCH_START + SQUATCH_WALK) {
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (t.sasquatch && (still || age < SQUATCH_START + SQUATCH_WALK)) {
     const fig = document.createElement('div'); fig.className = 'squatch';
     fig.appendChild(svg('', '0 0 40 90', SQUATCH));
     stand.insertBefore(fig, firstOfLayer(stand, 2)); // behind the mid trees, in front of the far ones
-    const x0 = 12 + mulberry(seed ^ SALT.squatch ^ 1)() * 54, W = stand.offsetWidth, R = cfg.ridge, n = 12;
+    const x0 = 12 + mulberry(seed ^ SALT.squatch ^ 1)() * 54, R = cfg.ridge, n = 12;
+    // x is a percentage of the stand, like the trees, so the walk stays on the ground line when the window is resized.
     const at = (i: number) => {
-      const xp = x0 + SQUATCH_SPAN * i / n; // follow the ground line the trees stand on
-      return `translate(${(W * xp / 100).toFixed(0)}px,${(-SQUATCH_GROUND - R.amp * (1 + Math.sin(xp / 100 * Math.PI * 2 * R.freq + R.phase))).toFixed(0)}px)`;
+      const xp = x0 + SQUATCH_SPAN * i / n;
+      return { left: xp.toFixed(2) + '%', transform: `translateY(${(-SQUATCH_GROUND - R.amp * (1 + Math.sin(xp / 100 * Math.PI * 2 * R.freq + R.phase))).toFixed(0)}px)` };
     };
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { fig.style.transform = at(n / 2); fig.classList.add('still'); }
-    else fig.animate(Array.from({ length: n + 1 }, (_, i) => ({ transform: at(i), opacity: i === 0 || i === n ? 0 : 0.5 })),
-      { duration: SQUATCH_WALK * 1000, delay: (SQUATCH_START - age) * 1000, fill: 'both' });
+    if (still) { Object.assign(fig.style, at(n / 2)); fig.classList.add('still'); }
+    else fig.animate(Array.from({ length: n + 1 }, (_, i) => ({ ...at(i), opacity: i === 0 || i === n ? 0 : 0.5 })),
+      { duration: SQUATCH_WALK * 1000, delay: (SQUATCH_START - age) * 1000, fill: 'both' })
+      .finished.then(() => fig.remove(), () => {}); // gone once it has walked off; a rebuild cancels it (rejects) and re-adds it
   }
 }
 
-/** Crows go behind the stand. Call once. */
+/**
+ * Crows go behind the stand. Call once. They keep to the band above the name (the page's top padding is at least 13vh),
+ * so nothing flaps behind the text, and a phone gets fewer of them.
+ */
 export function buildCrows(forest: HTMLElement, seed: number) {
-  {
-    const rnd = mulberry(seed ^ SALT.crows), box = document.createElement('div'); box.className = 'crows';
-    const n = 5 + Math.floor(rnd() * 5), cross = Math.max(18, innerWidth / 70); // seconds to cross: constant speed on any window
-    for (let i = 0; i < n; i++) {
-      const c = document.createElement('div'); c.className = 'crow';
-      c.style.cssText = `top:${(5 + rnd() * 24).toFixed(1)}vh;width:${(16 + rnd() * 12).toFixed(0)}px;--d:${(cross * (0.9 + rnd() * 0.3) / 0.6).toFixed(1)}s;--t:${(4 + i * 1.6 + rnd() * 3).toFixed(1)}s;--fd:${(0.34 + rnd() * 0.16).toFixed(2)}s`;
-      c.appendChild(svg('', '0 0 18 8', [['M1 5 Q5 0 9 4 Q13 0 17 5 M9 4 v1.6']]));
-      box.appendChild(c);
-    }
-    forest.prepend(box);
+  const rnd = mulberry(seed ^ SALT.crows), box = document.createElement('div'); box.className = 'crows';
+  const small = innerWidth < 600, n = (small ? 3 : 5) + Math.floor(rnd() * (small ? 3 : 5));
+  const cross = Math.max(18, innerWidth / 70); // seconds to cross: about 70 px/s, but never a dash across a narrow window
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement('div'); c.className = 'crow';
+    c.style.cssText = `top:${(2 + rnd() * 9).toFixed(1)}vh;width:${(16 + rnd() * 12).toFixed(0)}px;--d:${(cross * (0.9 + rnd() * 0.3) / 0.6).toFixed(1)}s;--t:${(4 + i * 1.6 + rnd() * 3).toFixed(1)}s;--fd:${(0.34 + rnd() * 0.16).toFixed(2)}s`;
+    c.appendChild(svg('', '0 0 18 8', [['M1 5 Q5 0 9 4 Q13 0 17 5 M9 4 v1.6']]));
+    box.appendChild(c);
   }
+  forest.prepend(box);
 }
 
-/** Flakes go into the (emptied) rain box, like buildRain. `count` is already scaled for the window width. */
-export function buildSnow(rainBox: HTMLElement, seed: number, count: number) {
-  {
-    const rnd = mulberry(seed ^ SALT.flakes), frag = document.createDocumentFragment(), n = count;
-    for (let i = 0; i < n; i++) {
-      const size = 4 + rnd() * 4, dur = 9 + rnd() * 7;
-      const f = svg('flake', '0 0 6 6', [['M3 0 v6 M0 3 h6 M1 1 l4 4 M5 1 l-4 4']]);
-      f.style.cssText = `left:${(rnd() * 100).toFixed(2)}%;top:-${(20 + rnd() * 300).toFixed(0)}px;width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;--d:${dur.toFixed(1)}s;--t:-${(rnd() * dur).toFixed(1)}s;--dx:${(-30 + rnd() * 60).toFixed(0)}px`;
-      frag.appendChild(f);
-    }
-    rainBox.appendChild(frag);
+/** Appends `count` flakes to `box`, like buildRain. Flake i is the same whatever the count. */
+export function buildSnow(box: ParentNode, seed: number, count: number) {
+  const rnd = mulberry(seed ^ SALT.flakes);
+  for (let i = 0; i < count; i++) {
+    const size = 4 + rnd() * 4, dur = 9 + rnd() * 7;
+    const f = svg('flake', '0 0 6 6', [['M3 0 v6 M0 3 h6 M1 1 l4 4 M5 1 l-4 4']]);
+    f.style.cssText = `left:${(rnd() * 100).toFixed(2)}%;top:-${(20 + rnd() * 300).toFixed(0)}px;width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;--d:${dur.toFixed(1)}s;--t:-${(rnd() * dur).toFixed(1)}s;--dx:${(-30 + rnd() * 60).toFixed(0)}px`;
+    box.appendChild(f);
   }
 }

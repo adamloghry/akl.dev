@@ -28,8 +28,8 @@ links, tokens, layout or forest behaviour without the owner).
   at dusk, morning mist, a night owl, a rare sasquatch, rare winter snow. Each
   has a `?name=on|off` override (`docs/design.md` section 3).
 - `src/styles/overrides.css` - owner-approved CSS deltas from the handoff
-  (the ridge draw-on, the stand's `--age`, the gust, pausing). Imported after `global.css`; a correction to the
-  design goes here, with a note in `docs/design.md` and a check in `verify.mjs`.
+  (the ridge draw-on, the stand's `--age`, the gust, pausing, the Seattle
+  touches). Imported after `global.css`; a correction to the design goes here, with a note in `docs/design.md` and a check in `verify.mjs`.
 - `public/` - served verbatim: `_headers` (security headers and CSP),
   `_redirects` (webfinger handoff to hachyderm), `index.html.md` (markdown twin
   of the page), `llms.txt`, `agents.txt`, `agents.json`, `humans.txt`,

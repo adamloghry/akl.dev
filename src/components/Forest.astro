@@ -49,21 +49,31 @@
   const main = document.querySelector('main');
   const born = performance.now();
   let builtK = 0;
+  // Bring `box` to the particles in `fresh` without touching the ones already falling (restarting them would empty the
+  // sky for seconds). Both builders draw particle i from one stream in order, so it is the same whatever the count.
+  const topUp = (box: HTMLElement, fresh: DocumentFragment) => {
+    while (box.childElementCount > fresh.childElementCount) box.lastElementChild!.remove();
+    box.append(...[...fresh.children].slice(box.childElementCount));
+  };
   // Fit first (the scale decides the stand's layout width), then build at that width's density. A resize that moves
-  // the density by more than REBUILD_AT rebuilds from the same seed; --age (overrides.css) keeps a rebuilt stand as
-  // far along its grow-in as the page is, so nothing regrows from the ground.
+  // the density by more than REBUILD_AT rebuilds the stand from the same seed; --age (overrides.css) keeps a rebuilt
+  // stand as far along its grow-in as the page is, so nothing regrows from the ground. What depends only on the
+  // window width (gust timing, rain and snow counts) is refreshed on every fit, rebuild or not.
   const fit = () => {
-    const k = standK(fitStandTall(stand, main!));
-    if (builtK && Math.abs(k / builtK - 1) <= REBUILD_AT) return;
-    const cfg = scaled(k), age = (performance.now() - born) / 1000;
-    stand.style.setProperty('--age', age.toFixed(1) + 's');
-    stand.replaceChildren(); rain.replaceChildren();
-    buildStand(stand, seed, cfg);
+    const k = standK(fitStandTall(stand, main!)), cfg = scaled(k);
+    if (!builtK || Math.abs(k / builtK - 1) > REBUILD_AT) {
+      const age = (performance.now() - born) / 1000;
+      stand.style.setProperty('--age', age.toFixed(1) + 's');
+      stand.replaceChildren();
+      buildStand(stand, seed, cfg);
+      dressStand(stand, seed, touches, age);
+      builtK = k;
+    }
     sweepGust(stand, rain);
-    dressStand(stand, seed, touches, age);
-    if (rainOn) buildRain(rain, seed ^ 0x9e3779b9, cfg);
-    if (touches.snow) buildSnow(rain, seed, Math.round(SNOW_COUNT * rainK()));
-    builtK = k;
+    const sky = document.createDocumentFragment();
+    if (rainOn) buildRain(sky, seed ^ 0x9e3779b9, cfg);
+    if (touches.snow) buildSnow(sky, seed, Math.round(SNOW_COUNT * rainK()));
+    topUp(rain, sky);
   };
   fit();
   if (touches.crows) buildCrows(document.getElementById('forest')!, seed);

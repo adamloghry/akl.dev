@@ -80,6 +80,8 @@ the deltas from that handoff; where they conflict, this document wins.
   (tall windows scale the stand up instead, see the next entry: 2560x1440 keeps 291, 4K gets 382).
   Wide-and-short windows whose stand is scaled down (1280x720, phone landscape) also gain up to a
   third. Rain sits outside the scaled stand, so its 70 drops scale by `clamp(innerWidth / 1440, 1, 3)`.
+  The rain is topped up or trimmed to the new count on every fit, never restarted (drop i is the
+  same whatever the count), so the sky does not empty on a resize.
   A resize that moves the density by more than 20% rebuilds the stand from the same seed; the
   stand's `--age` (seconds since load) is subtracted from every grow delay in `overrides.css`, so
   a rebuilt stand resumes where the page is instead of regrowing. `forest.js` is untouched
@@ -116,7 +118,8 @@ the deltas from that handoff; where they conflict, this document wins.
   with its x position: `src/scripts/gust.ts` sets `--gx` = left% x window width / 800 px/s after
   each build, so the front crosses 1440px in 1.8 s and a 4K window in 4.8 s. `.rain` keeps the
   handoff's skew, positioned to fill `.forest` and delayed to mid-sweep. All gust delays subtract
-  `--age`, so a resize rebuild keeps the wind's phase. Trees under 120px do not lean: their tips
+  `--age`, so a resize rebuild keeps the wind's phase; the rain box is never rebuilt, so its skew
+  does not. `--gx` is refreshed on every fit, since the crossing time follows the window width. Trees under 120px do not lean: their tips
   would move under 2px, and leaning every wrapper measured 2.4 to 2.7x the per-frame style work at
   3840 and 5120px wide (software rendering; not measured on a GPU). `AC-GUST-1`, `AC-GUST-2`.
 - **Hidden tabs pause the looping motion (owner request, 2026-11-10).** `src/scripts/pause.ts`
@@ -133,16 +136,18 @@ the deltas from that handoff; where they conflict, this document wins.
   forest, all decided like the rain from the Seattle clock and seeded rolls, with no network:
   - *The mountain is out*: a wireframe Rainier (Little Tahoma on its left shoulder) behind every
     tree, summit above the far and mid layers, on days with no rain and no snow.
-  - *Crows at dusk*: 5 to 9 small flapping crows cross right to left, repeating, from an hour
-    before the month's mean sunset to 0.4 h after. Hidden under reduced motion.
+  - *Crows at dusk*: 5 to 9 small flapping crows (3 to 5 under 600px wide) cross right to left,
+    repeating, from an hour before the month's mean sunset to 0.4 h after. They keep to the band
+    above the name so nothing flaps behind the text. Hidden under reduced motion.
   - *Morning mist*: three bands of the page colour between the mid layer and the logs, from half
     an hour before sunrise to 10:30, on a date roll by month (0.6 in January, 0.05 in July).
   - *Night owl*: at Seattle night, one owl drawn inside the svg of one of the first five near
     conifers or snags, at the top of the trunk, so it grows and sways with the tree and stays on
     the same tree through a resize. It blinks.
   - *Sasquatch*: on about 1 visit in 200 (a roll on the visit seed), 35 s in, a faint figure
-    walks 22% of the stand behind the mid trees over 48 s, following the ground line, and fades
-    out. Under reduced motion it stands still instead.
+    walks 22% of the stand behind the mid trees over 48 s, following the ground line, fades out
+    and is removed. Its x is a percentage of the stand, like the trees. Under reduced motion it
+    stands still instead.
   - *Snow*: December to February, on a date roll of 1 in 12 (about 7 days a winter), slow flakes
     replace the rain and the mountain is hidden. An explicit `?rain=on` beats an automatic snow
     day, so rain checks hold all year.
@@ -150,7 +155,8 @@ the deltas from that handoff; where they conflict, this document wins.
   are independent of the rain roll. QA overrides: `?snow= ?mountain= ?crows= ?mist= ?owl=
   ?sasquatch=` (`on|off`). Stand-level pieces are re-added after each density rebuild and their
   fades subtract `--age`. Styles are in `overrides.css`. `AC-PNW-1` to `AC-PNW-5` (browser),
-  `AC-PNW-6` (rolls over ten years of dates, in `verify-static.mjs`).
+  `AC-PNW-6` (rolls over ten years of dates, in `verify-static.mjs`). `AC-FOREST-10` covers a
+  resize that does not rebuild the stand.
 - **Copy (owner, 2026-11-01).** 16384.dev is described only as a "self-hosted forge" (no provenance
   claim yet). akl.run is "toys & experiments" everywhere, matching the visible link text.
 - **Fonts.** Import only `@fontsource/ibm-plex-mono/latin-400.css` and `latin-500.css`.
