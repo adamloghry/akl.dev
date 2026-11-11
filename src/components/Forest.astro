@@ -13,8 +13,9 @@
 </div>
 
 <script>
-  import { DEFAULT_CONFIG, buildForest, buildRain, fitStand, seattleNow, wxRain, wxNight, randomSeed } from '../scripts/forest.js';
+  import { DEFAULT_CONFIG, buildRain, fitStand, seattleNow, wxRain, wxNight, randomSeed } from '../scripts/forest.js';
   import { pauseWhenHidden } from '../scripts/pause';
+  import { buildStand } from '../scripts/stand';
 
   // Density (owner, docs/design.md section 3). The handoff's counts are fixed, so a wide stand is a sparse one.
   // Counts scale with the stand's layout width (innerWidth / --fs) from the width the design was drawn at,
@@ -50,7 +51,7 @@
     const cfg = scaled(k);
     stand.style.setProperty('--age', ((performance.now() - born) / 1000).toFixed(1) + 's');
     stand.replaceChildren(); rain.replaceChildren();
-    buildForest(stand, seed, cfg);
+    buildStand(stand, seed, cfg);
     if (rainOn) buildRain(rain, seed ^ 0x9e3779b9, cfg);
     builtK = k;
   };

@@ -113,6 +113,18 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
   ok('AC-RAIN-3', z.drops === Math.round(70 * 3840 / 1440), `rain scales with window width (${z.drops} drops)`);
   ok('AC-FOREST-7', z.ridges === 1 && z.age > 0, `resize rebuilds one stand, aged ${z.age}s so it does not regrow`);
   await ctx.close(); }
+// AC-FOREST-8: a density rebuild keeps every existing element (same left and path) and only adds; same seed and viewport
+// give the same stand. Each layer draws from its own seeded stream (src/scripts/stand.ts), so counts do not reshuffle it.
+{ const sigs = p => p.evaluate(() => [...document.querySelectorAll('#stand .tw')].map(w => w.style.left + ' ' + w.querySelector('path').getAttribute('d')));
+  const { p, ctx } = await page(1440, 900, 'light', '&rain=off');
+  const a = await sigs(p);
+  const { p: p2, ctx: ctx2 } = await page(1440, 900, 'light', '&rain=off');
+  const a2 = await sigs(p2); await ctx2.close();
+  ok('AC-FOREST-8 determinism', a.length > 0 && a.length === a2.length && a.every((s, i) => s === a2[i]), `same seed and viewport give the same stand (${a.length} elements)`);
+  await p.setViewportSize({ width: 3840, height: 1100 }); await p.waitForTimeout(400);
+  const z = await sigs(p), zs = new Set(z), lost = a.filter(s => !zs.has(s)).length;
+  ok('AC-FOREST-8 resize', z.length > a.length && lost === 0, `wider rebuild keeps every element and adds more (${a.length} -> ${z.length}, ${lost} lost)`);
+  await ctx.close(); }
 { const { p, ctx } = await page(1440, 900, 'light'); // motion allowed: half a second in, the ridge is still drawing on
   const clip = await p.evaluate(() => getComputedStyle(document.querySelector('.ridge')).clipPath);
   const right = parseFloat(clip.match(/^inset\(\S+ (\S+)/)?.[1] ?? '0');
