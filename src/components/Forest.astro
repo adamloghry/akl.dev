@@ -13,7 +13,8 @@
 </div>
 
 <script>
-  import { DEFAULT_CONFIG, buildRain, fitStand, seattleNow, wxRain, wxNight, randomSeed } from '../scripts/forest.js';
+  import { DEFAULT_CONFIG, buildRain, seattleNow, wxRain, wxNight, randomSeed } from '../scripts/forest.js';
+  import { fitStandTall } from '../scripts/fit';
   import { pauseWhenHidden } from '../scripts/pause';
   import { buildStand } from '../scripts/stand';
 
@@ -46,7 +47,7 @@
   // the density by more than REBUILD_AT rebuilds from the same seed; --age (overrides.css) keeps a rebuilt stand as
   // far along its grow-in as the page is, so nothing regrows from the ground.
   const fit = () => {
-    const k = standK(fitStand(stand, main));
+    const k = standK(fitStandTall(stand, main!));
     if (builtK && Math.abs(k / builtK - 1) <= REBUILD_AT) return;
     const cfg = scaled(k);
     stand.style.setProperty('--age', ((performance.now() - born) / 1000).toFixed(1) + 's');

@@ -82,7 +82,10 @@ for (const [w, h, scheme, label] of [[1440, 900, 'light', 'desktop-light'], [128
 for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
   const { p, ctx } = await page(w, h, 'light', '&rain=off&moon=off', true);
   await p.evaluate(() => { for (const e of document.querySelectorAll('.tw,.foot')) e.style.display = 'none'; });
-  const shot = (await p.locator('.ridge').screenshot()).toString('base64');
+  // Clip to the ridge's box inside the viewport: a stand scaled past 1 (AC-FOREST-9) overhangs it by a sub-pixel, and an element
+  // screenshot then captures beyond the viewport, where the fixed layer comes out blank.
+  const clip = await p.evaluate(() => { const r = document.querySelector('.ridge').getBoundingClientRect(); return { x: 0, y: r.top, width: innerWidth, height: Math.min(innerHeight, r.bottom) - r.top }; });
+  const shot = (await p.screenshot({ clip })).toString('base64');
   const q = await ctx.newPage(); // about:blank: no CSP, so the data: image can be decoded onto a canvas
   const cover = await q.evaluate(async b64 => {
     const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode();
@@ -98,8 +101,25 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
   ok(`AC-FOREST-4 ${w}x${h}`, cover > 0.98, `ridge spans the viewport (${Math.round(cover * 100)}% of columns inked)`);
   await ctx.close();
 }
+// AC-FOREST-9: a tall window scales the stand past the handoff's cap of 1 (owner, src/scripts/fit.ts), up to MAX_FS, to fill the
+// band under the text, and the near layer stays below the text (AC-FOREST-2's measurement on the fully grown stand, in dark,
+// where --boost does not lift the giants past the opacity filter). The 1440x900 design keeps its scale.
+{ const MAX_FS = 1.5; // keep in step with src/scripts/fit.ts
+  const fit = async (w, h) => { const { p, ctx } = await page(w, h, 'dark', '&rain=off&moon=off', true);
+    const r = await p.evaluate(() => {
+      const trees = [...document.querySelectorAll('.tree:not(.still)')].filter(t => parseFloat(getComputedStyle(t).opacity) > 0.2);
+      return { fs: parseFloat(document.getElementById('stand').style.getPropertyValue('--fs')), mainBottom: document.querySelector('main').getBoundingClientRect().bottom,
+        topOfForest: Math.min(...trees.map(t => t.getBoundingClientRect().top)) };
+    });
+    await ctx.close(); return r; };
+  const t = await fit(3840, 2160), d = await fit(1440, 900);
+  ok('AC-FOREST-9 3840x2160', t.fs > 1 && t.fs <= MAX_FS && t.topOfForest >= t.mainBottom - 8,
+    `tall window scales the stand up (--fs ${t.fs}, cap ${MAX_FS}), near layer below text (forest top ${Math.round(t.topOfForest)} ≥ main bottom ${Math.round(t.mainBottom)})`);
+  ok('AC-FOREST-9 1440x900', d.fs === 0.741, `design viewport keeps its scale (--fs ${d.fs})`);
+}
 // AC-FOREST-6 / AC-RAIN-3: density follows width (owner). The design width keeps the handoff's 291 elements and 70 drops;
-// a wide stand gets proportionally more, so elements per 1000px of stand stay near the design's ~150.
+// a wide stand gets proportionally more, so elements per 1000px of stand stay near the design's ~150. 3840x1100 is wide but
+// short, so --fs stays ~1 and width alone sets the density (a tall 4K window scales the stand up instead, AC-FOREST-9).
 // AC-FOREST-7: a resize that changes the density rebuilds the stand already grown (--age), not from the ground.
 { const { p, ctx } = await page(1440, 900, 'light', '&rain=on');
   const stat = () => p.evaluate(() => { const s = document.getElementById('stand');
@@ -107,9 +127,9 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
       per: s.querySelectorAll('.tw').length / (innerWidth / parseFloat(getComputedStyle(s).getPropertyValue('--fs'))) * 1000, age: parseFloat(s.style.getPropertyValue('--age')) }; });
   const a = await stat();
   ok('AC-FOREST-6 1440x900', a.n === 291 && a.drops === 70, `design width keeps the handoff counts (${a.n} elements, ${a.drops} drops)`);
-  await p.setViewportSize({ width: 3840, height: 2160 }); await p.waitForTimeout(400);
+  await p.setViewportSize({ width: 3840, height: 1100 }); await p.waitForTimeout(400);
   const z = await stat();
-  ok('AC-FOREST-6 3840x2160', z.n > 291 * 1.8 && Math.abs(z.per / a.per - 1) < 0.1, `wide stand keeps the design density (${z.n} elements, ${Math.round(z.per)} vs ${Math.round(a.per)} per 1000px)`);
+  ok('AC-FOREST-6 3840x1100', z.n > 291 * 1.8 && Math.abs(z.per / a.per - 1) < 0.1, `wide stand keeps the design density (${z.n} elements, ${Math.round(z.per)} vs ${Math.round(a.per)} per 1000px)`);
   ok('AC-RAIN-3', z.drops === Math.round(70 * 3840 / 1440), `rain scales with window width (${z.drops} drops)`);
   ok('AC-FOREST-7', z.ridges === 1 && z.age > 0, `resize rebuilds one stand, aged ${z.age}s so it does not regrow`);
   await ctx.close(); }
