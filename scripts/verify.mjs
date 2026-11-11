@@ -125,5 +125,18 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
   const rainAuto = await p.evaluate(() => document.querySelectorAll('.drop').length);
   ok('AC-RAIN-2', rainAuto === 0 || rainAuto === 70, 'rain auto resolves to all-or-nothing (' + rainAuto + ')');
   await ctx.close(); }
+// AC-PAUSE-1: while the document is hidden the infinite animations (sway, rain, gust, moon drift) pause and the one-shot
+// grow-in keeps running; on return they all run again. visibilityState is faked: Playwright pages are always visible.
+{ const { p, ctx } = await page(1440, 900, 'dark', '&rain=on&moon=on');
+  const states = (hidden) => p.evaluate(h => {
+    for (const [k, v] of [['visibilityState', h ? 'hidden' : 'visible'], ['hidden', h]]) Object.defineProperty(document, k, { configurable: true, get: () => v });
+    document.dispatchEvent(new Event('visibilitychange'));
+    const s = sel => getComputedStyle(document.querySelector(sel)).animationPlayState;
+    return { tree: s('.tree:not(.still):not(.calm)'), drop: s('.drop'), forest: s('#forest'), moon: s('#moon'), grow: s('.tw:not(.still)') };
+  }, hidden);
+  const h = await states(true), v = await states(false);
+  ok('AC-PAUSE-1 hidden', h.tree === 'paused' && h.drop === 'paused' && h.forest === 'paused' && h.moon === 'paused' && h.grow === 'running', `hidden pauses the loops, not the grow-in (${JSON.stringify(h)})`);
+  ok('AC-PAUSE-1 visible', Object.values(v).every(x => x === 'running'), `visible resumes them (${JSON.stringify(v)})`);
+  await ctx.close(); }
 await b.close(); srv.close();
 console.log(fails ? `\n${fails} FAILED` : '\nall checks passed'); process.exit(fails ? 1 : 0);

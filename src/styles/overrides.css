@@ -14,3 +14,9 @@
    since page load. Subtracting it from each delay resumes the grow-in where the page already is: trees that
    had grown stay grown, the ridge stays drawn. --age is 0s on the first build. */
 .stand .tw{animation-delay:calc(var(--t) - var(--age,0s))}
+
+/* Hidden tab. pause.ts puts .tab-hidden on #forest and #moon while document.visibilityState is "hidden". Only the
+   infinite animations pause (gust on .forest, sway on .tree, rain on .drop, drift on .moon): they are periodic, so
+   resuming mid-cycle is invisible. The one-shot grow-in (.tw) and ridge reveal are deliberately left running so the
+   stand finishes growing while the tab is away and --age (wall-clock seconds since load) stays accurate. */
+.forest.tab-hidden,.forest.tab-hidden .tree,.forest.tab-hidden .drop,.moon.tab-hidden{animation-play-state:paused}

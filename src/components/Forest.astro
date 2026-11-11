@@ -14,6 +14,7 @@
 
 <script>
   import { DEFAULT_CONFIG, buildForest, buildRain, fitStand, seattleNow, wxRain, wxNight, randomSeed } from '../scripts/forest.js';
+  import { pauseWhenHidden } from '../scripts/pause';
 
   // Density (owner, docs/design.md section 3). The handoff's counts are fixed, so a wide stand is a sparse one.
   // Counts scale with the stand's layout width (innerWidth / --fs) from the width the design was drawn at,
@@ -75,4 +76,5 @@
     }, 80);
   });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  pauseWhenHidden(document.getElementById('forest')!, moon);
 </script>
