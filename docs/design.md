@@ -71,6 +71,19 @@ the deltas from that handoff; where they conflict, this document wins.
   `global.css` and `forest.js` stay byte-identical (AC-REF-1); the dash rules and `pathLength` are
   inert. `AC-FOREST-4`: the finished ridge inks >98% of columns at 1440, 2560 and 3840px wide.
   `AC-FOREST-5`: the reveal is in progress half a second after load.
+- **Density follows width (owner decision, 2026-11-10; changes handoff 02 "fixed counts").** The
+  handoff's 291 elements are spread over the stand's layout width (`innerWidth / --fs`), which is
+  ~1940px at the 1440x900 and 1920x1080 designs (~150 elements per 1000px) but 3840px on a 4K
+  window (76 per 1000px). `Forest.astro` now fits first, then builds from a copy of
+  `DEFAULT_CONFIG` whose layer counts are multiplied by `clamp(layoutWidth / 1950, 1, 3)`: never
+  fewer than the handoff's counts, so phones are unchanged; 2560x1440 gets 382 elements, 4K 573.
+  Wide-and-short windows whose stand is scaled down (1280x720, phone landscape) also gain up to a
+  third. Rain sits outside the scaled stand, so its 70 drops scale by `clamp(innerWidth / 1440, 1, 3)`.
+  A resize that moves the density by more than 20% rebuilds the stand from the same seed; the
+  stand's `--age` (seconds since load) is subtracted from every grow delay in `overrides.css`, so
+  a rebuilt stand resumes where the page is instead of regrowing. `forest.js` is untouched
+  (AC-REF-1). Same seed and same density still give the same stand; `?seed=` screenshots are
+  comparable only at the same viewport. `AC-FOREST-6`, `AC-FOREST-7`, `AC-RAIN-3`.
 - **Copy (owner, 2026-11-01).** 16384.dev is described only as a "self-hosted forge" (no provenance
   claim yet). akl.run is "toys & experiments" everywhere, matching the visible link text.
 - **Fonts.** Import only `@fontsource/ibm-plex-mono/latin-400.css` and `latin-500.css`.

@@ -13,7 +13,20 @@
 </div>
 
 <script>
-  import { buildForest, buildRain, fitStand, seattleNow, wxRain, wxNight, randomSeed } from '../scripts/forest.js';
+  import { DEFAULT_CONFIG, buildForest, buildRain, fitStand, seattleNow, wxRain, wxNight, randomSeed } from '../scripts/forest.js';
+
+  // Density (owner, docs/design.md section 3). The handoff's counts are fixed, so a wide stand is a sparse one.
+  // Counts scale with the stand's layout width (innerWidth / --fs) from the width the design was drawn at,
+  // never below the handoff's counts. Rain is not inside the scaled stand, so it scales with the window width.
+  const REF_STAND_W = 1950, REF_RAIN_W = 1440, MAX_DENSITY = 3, REBUILD_AT = 0.2;
+  const clampK = (k: number) => Math.min(MAX_DENSITY, Math.max(1, k));
+  const standK = (fs: number) => clampK(innerWidth / fs / REF_STAND_W);
+  const rainK = () => clampK(innerWidth / REF_RAIN_W);
+  const scaled = (k: number) => ({
+    ...DEFAULT_CONFIG,
+    layers: DEFAULT_CONFIG.layers.map((L) => ({ ...L, count: Math.round(L.count * k) })),
+    rain: { ...DEFAULT_CONFIG.rain, count: Math.round(DEFAULT_CONFIG.rain.count * rainK()) },
+  });
 
   const q = new URLSearchParams(location.search);
   const now = seattleNow();
@@ -22,10 +35,25 @@
   let seed = randomSeed();
   if (q.has('seed')) seed = parseInt(q.get('seed')!, 10) >>> 0;
 
-  const stand = document.getElementById('stand');
+  const stand = document.getElementById('stand')!;
+  const rain = document.getElementById('rain')!;
   const main = document.querySelector('main');
-  buildForest(stand, seed);
-  if (rainOn) buildRain(document.getElementById('rain'), seed ^ 0x9e3779b9);
+  const born = performance.now();
+  let builtK = 0;
+  // Fit first (the scale decides the stand's layout width), then build at that width's density. A resize that moves
+  // the density by more than REBUILD_AT rebuilds from the same seed; --age (overrides.css) keeps a rebuilt stand as
+  // far along its grow-in as the page is, so nothing regrows from the ground.
+  const fit = () => {
+    const k = standK(fitStand(stand, main));
+    if (builtK && Math.abs(k / builtK - 1) <= REBUILD_AT) return;
+    const cfg = scaled(k);
+    stand.style.setProperty('--age', ((performance.now() - born) / 1000).toFixed(1) + 's');
+    stand.replaceChildren(); rain.replaceChildren();
+    buildForest(stand, seed, cfg);
+    if (rainOn) buildRain(rain, seed ^ 0x9e3779b9, cfg);
+    builtK = k;
+  };
+  fit();
 
   const moon = document.getElementById('moon')!;
   const isDark = () => {
@@ -37,8 +65,6 @@
   document.addEventListener('themechange', syncMoon);
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncMoon);
 
-  const fit = () => fitStand(stand, main);
-  fit();
   // iOS fires resize as the toolbar collapses while scrolling (innerHeight only): ignore small height-only changes.
   let t: ReturnType<typeof setTimeout>, lw = innerWidth, lh = innerHeight;
   addEventListener('resize', () => {

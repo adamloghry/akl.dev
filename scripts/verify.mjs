@@ -98,6 +98,21 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
   ok(`AC-FOREST-4 ${w}x${h}`, cover > 0.98, `ridge spans the viewport (${Math.round(cover * 100)}% of columns inked)`);
   await ctx.close();
 }
+// AC-FOREST-6 / AC-RAIN-3: density follows width (owner). The design width keeps the handoff's 291 elements and 70 drops;
+// a wide stand gets proportionally more, so elements per 1000px of stand stay near the design's ~150.
+// AC-FOREST-7: a resize that changes the density rebuilds the stand already grown (--age), not from the ground.
+{ const { p, ctx } = await page(1440, 900, 'light', '&rain=on');
+  const stat = () => p.evaluate(() => { const s = document.getElementById('stand');
+    return { n: s.querySelectorAll('.tw').length, ridges: s.querySelectorAll('.ridge').length, drops: document.querySelectorAll('.drop').length,
+      per: s.querySelectorAll('.tw').length / (innerWidth / parseFloat(getComputedStyle(s).getPropertyValue('--fs'))) * 1000, age: parseFloat(s.style.getPropertyValue('--age')) }; });
+  const a = await stat();
+  ok('AC-FOREST-6 1440x900', a.n === 291 && a.drops === 70, `design width keeps the handoff counts (${a.n} elements, ${a.drops} drops)`);
+  await p.setViewportSize({ width: 3840, height: 2160 }); await p.waitForTimeout(400);
+  const z = await stat();
+  ok('AC-FOREST-6 3840x2160', z.n > 291 * 1.8 && Math.abs(z.per / a.per - 1) < 0.1, `wide stand keeps the design density (${z.n} elements, ${Math.round(z.per)} vs ${Math.round(a.per)} per 1000px)`);
+  ok('AC-RAIN-3', z.drops === Math.round(70 * 3840 / 1440), `rain scales with window width (${z.drops} drops)`);
+  ok('AC-FOREST-7', z.ridges === 1 && z.age > 0, `resize rebuilds one stand, aged ${z.age}s so it does not regrow`);
+  await ctx.close(); }
 { const { p, ctx } = await page(1440, 900, 'light'); // motion allowed: half a second in, the ridge is still drawing on
   const clip = await p.evaluate(() => getComputedStyle(document.querySelector('.ridge')).clipPath);
   const right = parseFloat(clip.match(/^inset\(\S+ (\S+)/)?.[1] ?? '0');

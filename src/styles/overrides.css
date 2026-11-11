@@ -6,6 +6,11 @@
    pathLength still normalises against the viewBox length (~1302 units), so the line stopped ~1300px in
    and never reached the right edge on wider screens. A clip-path reveal has no length to get wrong.
    The extra .stand in each selector outranks global.css whatever the bundle order. */
-.stand .ridge{clip-path:inset(0 100% 0 0);animation:ridge-reveal 14s ease-out forwards}
+.stand .ridge{clip-path:inset(0 100% 0 0);animation:ridge-reveal 14s ease-out calc(0s - var(--age,0s)) forwards}
 .stand .ridge path{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
 @keyframes ridge-reveal{to{clip-path:inset(0)}}
+
+/* Stand age. Forest.astro rebuilds the stand when a resize changes its density and sets --age to the seconds
+   since page load. Subtracting it from each delay resumes the grow-in where the page already is: trees that
+   had grown stay grown, the ridge stays drawn. --age is 0s on the first build. */
+.stand .tw{animation-delay:calc(var(--t) - var(--age,0s))}
