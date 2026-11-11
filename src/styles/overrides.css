@@ -16,7 +16,20 @@
 .stand .tw{animation-delay:calc(var(--t) - var(--age,0s))}
 
 /* Hidden tab. pause.ts puts .tab-hidden on #forest and #moon while document.visibilityState is "hidden". Only the
-   infinite animations pause (gust on .forest, sway on .tree, rain on .drop, drift on .moon): they are periodic, so
-   resuming mid-cycle is invisible. The one-shot grow-in (.tw) and ridge reveal are deliberately left running so the
-   stand finishes growing while the tab is away and --age (wall-clock seconds since load) stays accurate. */
-.forest.tab-hidden,.forest.tab-hidden .tree,.forest.tab-hidden .drop,.moon.tab-hidden{animation-play-state:paused}
+   infinite animations pause (sway and gust lean on .tree, gust skew on .rain, rain on .drop, drift on .moon): they
+   are periodic, so resuming mid-cycle is invisible. The one-shot grow-in (.tw) and ridge reveal are deliberately left
+   running so the stand finishes growing while the tab is away and --age (wall-clock seconds since load) stays accurate.
+   !important because an `animation` shorthand on a more specific selector (the gust rule below) resets the play state. */
+.forest.tab-hidden .tree,.forest.tab-hidden .rain,.forest.tab-hidden .drop,.moon.tab-hidden{animation-play-state:paused !important}
+
+/* Gust sweep. The handoff skews the whole .forest once per 38s, which on a wide window reads as the picture
+   tilting. Instead each swaying tree leans on the individual `rotate` property (it composes with sway's
+   `transform`, about the same trunk-base origin) to the same rhythm, delayed by --gx, the time the gust
+   front takes to reach it (gust.ts), so the lean rolls left to right with the wind. Only trees that already
+   sway take part: they are compositor layers anyway, so the gust adds none, and under 120px (.calm) a 1.6deg
+   lean moves a tip under 2px. Logs (.still) never move. Subtracting --age keeps the wind's phase across a
+   rebuild. The rain keeps the handoff's skew, timed for mid-sweep; positioned to fill .forest as before. */
+.page .forest{animation:none}
+.stand .tree:not(.calm):not(.still){animation:sway var(--sd) ease-in-out var(--st) infinite alternate,gust-lean 38s ease-in-out calc(6s + var(--gx,0s) - var(--age,0s)) infinite}
+.forest .rain{position:absolute;inset:0;transform-origin:50% 100%;animation:gust 38s ease-in-out calc(6s + var(--gx,0s) - var(--age,0s)) infinite}
+@keyframes gust-lean{0%,62%,100%{rotate:0deg}66%{rotate:1.6deg}71%{rotate:.5deg}75%{rotate:1.1deg}86%{rotate:0deg}}

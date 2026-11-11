@@ -117,6 +117,24 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
     `tall window scales the stand up (--fs ${t.fs}, cap ${MAX_FS}), near layer below text (forest top ${Math.round(t.topOfForest)} ≥ main bottom ${Math.round(t.mainBottom)})`);
   ok('AC-FOREST-9 1440x900', d.fs === 0.741, `design viewport keeps its scale (--fs ${d.fs})`);
 }
+// AC-GUST-1: the gust sweeps left to right (owner): each swaying tree leans on its own, delayed in proportion to its
+// x position, instead of the handoff's skew of the whole .forest. Logs never move. AC-GUST-2: reduced motion ends upright.
+{ const { p, ctx } = await page(1440, 900, 'light', '&rain=on');
+  const g = await p.evaluate(() => {
+    const lean = e => e.getAnimations().find(a => a.animationName === 'gust-lean');
+    const trees = [...document.querySelectorAll('.stand .tree')].filter(lean)
+      .map(t => [parseFloat(t.parentElement.style.left), lean(t).effect.getTiming().delay]).sort((a, b) => a[0] - b[0]);
+    const logs = [...document.querySelectorAll('.stand .tw.still, .stand .tw.still .tree')];
+    return { n: trees.length, mono: trees.every((t, i) => i === 0 || t[1] >= trees[i - 1][1]), span: trees.length ? trees.at(-1)[1] - trees[0][1] : 0,
+      forest: document.getElementById('forest').getAnimations().map(a => a.animationName), logs: logs.length, logAnims: logs.reduce((s, e) => s + e.getAnimations().length, 0) };
+  });
+  ok('AC-GUST-1', g.n > 20 && g.mono && g.span > 1000 && g.forest.length === 0 && g.logs > 0 && g.logAnims === 0,
+    `gust delay rises with x across ${g.n} trees (${Math.round(g.span)}ms left to right), .forest runs [${g.forest}], ${g.logAnims} animations on ${g.logs} log elements`);
+  await ctx.close(); }
+{ const { p, ctx } = await page(1440, 900, 'light', '&rain=off', true);
+  const r = await p.evaluate(() => [...new Set([...document.querySelectorAll('.stand .tree')].map(t => getComputedStyle(t).rotate))]);
+  ok('AC-GUST-2', r.every(v => v === 'none' || parseFloat(v) === 0), `reduced motion: trees upright after load (rotate ${r.join(', ')})`);
+  await ctx.close(); }
 // AC-FOREST-6 / AC-RAIN-3: density follows width (owner). The design width keeps the handoff's 291 elements and 70 drops;
 // a wide stand gets proportionally more, so elements per 1000px of stand stay near the design's ~150. 3840x1100 is wide but
 // short, so --fs stays ~1 and width alone sets the density (a tall 4K window scales the stand up instead, AC-FOREST-9).
@@ -163,11 +181,12 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
   const states = (hidden) => p.evaluate(h => {
     for (const [k, v] of [['visibilityState', h ? 'hidden' : 'visible'], ['hidden', h]]) Object.defineProperty(document, k, { configurable: true, get: () => v });
     document.dispatchEvent(new Event('visibilitychange'));
-    const s = sel => getComputedStyle(document.querySelector(sel)).animationPlayState;
-    return { tree: s('.tree:not(.still):not(.calm)'), drop: s('.drop'), forest: s('#forest'), moon: s('#moon'), grow: s('.tw:not(.still)') };
+    // A swaying tree runs two animations (sway, gust lean), so its play state is a list: collapse it to the distinct values.
+    const s = sel => [...new Set(getComputedStyle(document.querySelector(sel)).animationPlayState.split(', '))].join('+');
+    return { tree: s('.tree:not(.still):not(.calm)'), drop: s('.drop'), rain: s('#rain'), moon: s('#moon'), grow: s('.tw:not(.still)') };
   }, hidden);
   const h = await states(true), v = await states(false);
-  ok('AC-PAUSE-1 hidden', h.tree === 'paused' && h.drop === 'paused' && h.forest === 'paused' && h.moon === 'paused' && h.grow === 'running', `hidden pauses the loops, not the grow-in (${JSON.stringify(h)})`);
+  ok('AC-PAUSE-1 hidden', h.tree === 'paused' && h.drop === 'paused' && h.rain === 'paused' && h.moon === 'paused' && h.grow === 'running', `hidden pauses the loops, not the grow-in (${JSON.stringify(h)})`);
   ok('AC-PAUSE-1 visible', Object.values(v).every(x => x === 'running'), `visible resumes them (${JSON.stringify(v)})`);
   await ctx.close(); }
 await b.close(); srv.close();

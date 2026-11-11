@@ -15,6 +15,7 @@
 <script>
   import { DEFAULT_CONFIG, buildRain, seattleNow, wxRain, wxNight, randomSeed } from '../scripts/forest.js';
   import { fitStandTall } from '../scripts/fit';
+  import { sweepGust } from '../scripts/gust';
   import { pauseWhenHidden } from '../scripts/pause';
   import { buildStand } from '../scripts/stand';
 
@@ -53,6 +54,7 @@
     stand.style.setProperty('--age', ((performance.now() - born) / 1000).toFixed(1) + 's');
     stand.replaceChildren(); rain.replaceChildren();
     buildStand(stand, seed, cfg);
+    sweepGust(stand, rain);
     if (rainOn) buildRain(rain, seed ^ 0x9e3779b9, cfg);
     builtK = k;
   };
