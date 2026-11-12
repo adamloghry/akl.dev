@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "check": "astro check",
     "og": "node scripts/og.mjs",
+    "profile-forest": "node scripts/profile-forest.mjs",
     "pin-playwright": "node scripts/pin-playwright.mjs",
     "verify": "node scripts/verify-static.mjs && node scripts/verify.mjs"
   },
