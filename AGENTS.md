@@ -40,7 +40,8 @@ links, tokens, layout or forest behaviour without the owner).
 - `scripts/verify-static.mjs` - no-browser checks (AC-META-6, AC-PERF-1,
   AC-COPY-3, AC-NAV-3). `scripts/verify.mjs` - Playwright acceptance suite
   (includes AC-CSP-*). `scripts/og.mjs` - regenerates `public/og.png`
-  (`npm run og`).
+  (`npm run og`). `scripts/profile-forest.mjs` - writes the GitHub profile README banner
+  (`forest.svg`, `forest-dark.svg`) from `forest.js` and the theme tokens (`npm run profile-forest`).
 - `wrangler.json`, `flake.nix`, `flake.lock`, `nix/treefmt.nix`, `.envrc`, `.node-version`,
   `renovate.json`, `.github/workflows/{nix,verify}.yml`.
 - `docs/handoff/` - the design handoff (README, docs 01-09, `reference/`). Do

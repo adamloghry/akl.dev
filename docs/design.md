@@ -159,6 +159,9 @@ the deltas from that handoff; where they conflict, this document wins.
   resize that does not rebuild the stand.
 - **Copy (owner, 2026-11-01).** 16384.dev is described only as a "self-hosted forge" (no provenance
   claim yet). akl.run is "toys & experiments" everywhere, matching the visible link text.
+- **Role line (owner, 2026-11-11; overrides the role copy in handoff D12).** "Senior Staff SRE and
+  SRE lead for GKE, based in Seattle" on the page, in `index.html.md` and in `llms.txt`. The
+  GitHub profile README spells out Google Kubernetes Engine; the site uses the short form.
 - **Fonts.** Import only `@fontsource/ibm-plex-mono/latin-400.css` and `latin-500.css`.
   `AC-PERF-1`: no non-latin `ibm-plex-mono-*.woff2` in `dist/`.
 - **webfinger.** `public/_redirects`:

@@ -1,6 +1,6 @@
 # Adam K. Loghry
 
-Senior Staff SRE & SRE Lead at Google Kubernetes Engine in Seattle.
+Senior Staff SRE and SRE lead for GKE, based in Seattle.
 
 18+ years in infrastructure at Google (Ads, GCE, GKE) and Amazon (Linux, IAM, EC2 Network Security).
 
