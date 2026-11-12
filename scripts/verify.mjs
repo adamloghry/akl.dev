@@ -103,7 +103,8 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
 }
 // AC-FOREST-9: a tall window scales the stand past the handoff's cap of 1 (owner, src/scripts/fit.ts), up to MAX_FS, to fill the
 // band under the text, and the near layer stays below the text (AC-FOREST-2's measurement on the fully grown stand, in dark,
-// where --boost does not lift the giants past the opacity filter). The 1440x900 design keeps its scale.
+// where --boost does not lift the giants past the opacity filter). The 1440x900 design keeps its scale. That scale is 0.701,
+// not the handoff's 0.741, since the role line (owner copy, 2026-11-11) wraps to two lines there and the stand fits under it.
 { const { MAX_FS } = await import('../src/scripts/fit.ts'); // Node strips the types
   const fit = async (w, h) => { const { p, ctx } = await page(w, h, 'dark', '&rain=off&moon=off', true);
     const r = await p.evaluate(() => {
@@ -115,7 +116,7 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
   const t = await fit(3840, 2160), d = await fit(1440, 900);
   ok('AC-FOREST-9 3840x2160', t.fs > 1 && t.fs <= MAX_FS && t.topOfForest >= t.mainBottom - 8,
     `tall window scales the stand up (--fs ${t.fs}, cap ${MAX_FS}), near layer below text (forest top ${Math.round(t.topOfForest)} ≥ main bottom ${Math.round(t.mainBottom)})`);
-  ok('AC-FOREST-9 1440x900', d.fs === 0.741, `design viewport keeps its scale (--fs ${d.fs})`);
+  ok('AC-FOREST-9 1440x900', d.fs === 0.701, `design viewport keeps its scale (--fs ${d.fs})`);
 }
 // AC-GUST-1: the gust sweeps left to right (owner): each swaying tree leans on its own, delayed in proportion to its
 // x position, instead of the handoff's skew of the whole .forest. Logs never move. AC-GUST-2: reduced motion ends upright.
@@ -135,7 +136,8 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
   const r = await p.evaluate(() => [...new Set([...document.querySelectorAll('.stand .tree')].map(t => getComputedStyle(t).rotate))]);
   ok('AC-GUST-2', r.every(v => v === 'none' || parseFloat(v) === 0), `reduced motion: trees upright after load (rotate ${r.join(', ')})`);
   await ctx.close(); }
-// AC-FOREST-6 / AC-RAIN-3: density follows width (owner). The design width keeps the handoff's 291 elements and 70 drops;
+// AC-FOREST-6 / AC-RAIN-3: density follows width (owner). The design width keeps 307 elements and 70 drops (the handoff's
+// 291 at the 0.741 scale; the two-line role line brings it to 0.701, a 2054px stand, so density 1.053, AC-FOREST-9);
 // a wide stand gets proportionally more, so elements per 1000px of stand stay near the design's ~150. 3840x1100 is wide but
 // short, so --fs stays ~1 and width alone sets the density (a tall 4K window scales the stand up instead, AC-FOREST-9).
 // AC-FOREST-7: a resize that changes the density rebuilds the stand already grown, not from the ground: each tree's grow
@@ -157,7 +159,7 @@ for (const [w, h] of [[1440, 900], [2560, 1440], [3840, 2160]]) {
   const a = await stat();
   await p.evaluate(() => { document.querySelector('.drop').dataset.kept = '1'; });
   await p.waitForTimeout(1500); // let the page age, so a rebuild that mishandles --age is seconds out, not a rounding error
-  ok('AC-FOREST-6 1440x900', a.n === 291 && a.drops === 70, `design width keeps the handoff counts (${a.n} elements, ${a.drops} drops)`);
+  ok('AC-FOREST-6 1440x900', a.n === 307 && a.drops === 70, `design width keeps the design counts (${a.n} elements, ${a.drops} drops)`);
   await p.setViewportSize({ width: 3840, height: 1100 }); await p.waitForTimeout(400);
   const z = await stat();
   ok('AC-FOREST-6 3840x1100', z.n > 291 * 1.8 && Math.abs(z.per / a.per - 1) < 0.1, `wide stand keeps the design density (${z.n} elements, ${Math.round(z.per)} vs ${Math.round(a.per)} per 1000px)`);
