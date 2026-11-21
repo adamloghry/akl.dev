@@ -39,9 +39,13 @@ links, tokens, layout or forest behaviour without the owner).
   `<script>` in `dist/**/*.html` and writes the hashes into `dist/_headers`.
 - `scripts/verify-static.mjs` - no-browser checks (AC-META-6, AC-PERF-1,
   AC-COPY-3, AC-NAV-3). `scripts/verify.mjs` - Playwright acceptance suite
-  (includes AC-CSP-*). `scripts/og.mjs` - regenerates `public/og.png`
-  (`npm run og`). `scripts/profile-forest.mjs` - writes the GitHub profile README banner
-  (`forest.svg`, `forest-dark.svg`) from `forest.js` and the theme tokens (`npm run profile-forest`).
+  (includes AC-CSP-*). `scripts/static-file.mjs` - shared confined file reader
+  for the local test and OG servers; `scripts/static-file.test.mjs` covers
+  traversal and symlink escapes. `scripts/bombadil.mjs` and `bombadil/` run
+  property-based browser checks against the local build. `scripts/og.mjs` -
+  regenerates `public/og.png` (`npm run og`). `scripts/profile-forest.mjs`
+  writes the GitHub profile README banner (`forest.svg`, `forest-dark.svg`)
+  from `forest.js` and the theme tokens (`npm run profile-forest`).
 - `wrangler.json`, `flake.nix`, `flake.lock`, `nix/treefmt.nix`, `.envrc`, `.node-version`,
   `renovate.json`, `.github/workflows/{nix,verify}.yml`.
 - `docs/handoff/` - the design handoff (README, docs 01-09, `reference/`). Do
@@ -80,11 +84,14 @@ Nix flake using devenv; plain Node also works.
 
 ## Verify
 
-`npm run verify` = `verify-static.mjs` then `verify.mjs`; run `npm run build`
+`npm run verify` = `static-file.test.mjs`, `verify-static.mjs`, then `verify.mjs`; run `npm run build`
 first. Expect `static checks passed` and `all checks passed`. `npm run check`
 is `astro check` (expect 0 errors). Checks are keyed by acceptance-criterion ids
 (AC-...) from the spec. Anything new you add to the page gets a check, in
 `verify-static.mjs` if it needs no browser, else in `verify.mjs`.
+`npm run test:bombadil` explores theme, footer, reload, and viewport transitions
+for 30 seconds against `dist/`, saving a trace under ignored `tmp/`. Run it
+after the build, inside the Nix shell for its Chromium browser.
 
 ## CSP
 
