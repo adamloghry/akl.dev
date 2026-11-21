@@ -2,18 +2,27 @@
 // Exits non-zero on any failure. Mirrors docs/09-acceptance-criteria.md (AC-* ids in the output).
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
+import { once } from 'node:events';
 import { readFile, access } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import { inlineScriptHashes } from '../integrations/csp-hashes.mjs';
+import { readStaticFile } from './static-file.mjs';
 const dist = new URL('../dist/', import.meta.url).pathname;
 const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.png': 'image/png', '.txt': 'text/plain', '.json': 'application/json', '.xml': 'application/xml', '.md': 'text/markdown' };
 const headersFile = await readFile(join(dist, '_headers'), 'utf8');
 const csp = (headersFile.split(/\n(?=\S)/).find(b => b.startsWith('/*')) || '')
   .split('\n').map(l => l.trim()).find(l => l.startsWith('Content-Security-Policy:'))?.slice('Content-Security-Policy:'.length).trim() || '';
 const srv = createServer(async (req, res) => {
-  let p = req.url.split('?')[0]; if (p.endsWith('/')) p += 'index.html';
-  try { const b = await readFile(join(dist, p)); res.setHeader('content-type', types[extname(p)] || 'application/octet-stream'); if (csp) res.setHeader('content-security-policy', csp); res.end(b); } catch { res.statusCode = 404; res.end(); }
-}).listen(0);
+  try {
+    const b = await readStaticFile(dist, req.url);
+    if (!b) { res.statusCode = 404; res.end(); return; }
+    const path = req.url.split('?')[0];
+    res.setHeader('content-type', types[extname(path.endsWith('/') ? path + 'index.html' : path)] || 'application/octet-stream');
+    if (csp) res.setHeader('content-security-policy', csp);
+    res.end(b);
+  } catch { res.statusCode = 404; res.end(); }
+}).listen(0, '127.0.0.1');
+await once(srv, 'listening');
 const base = `http://127.0.0.1:${srv.address().port}`;
 let fails = 0; const ok = (id, cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + id + '  ' + msg); if (!cond) fails++; };
 

@@ -14,7 +14,7 @@
     "og": "node scripts/og.mjs",
     "profile-forest": "node scripts/profile-forest.mjs",
     "pin-playwright": "node scripts/pin-playwright.mjs",
-    "verify": "node scripts/verify-static.mjs && node scripts/verify.mjs"
+    "verify": "node --test scripts/static-file.test.mjs && node scripts/verify-static.mjs && node scripts/verify.mjs"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",

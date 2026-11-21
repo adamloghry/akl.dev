@@ -2,14 +2,21 @@
 // Deterministic seed so the OG image is stable across builds; rain off; light theme.
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
-import { join, extname } from 'node:path';
+import { once } from 'node:events';
+import { extname } from 'node:path';
+import { readStaticFile } from './static-file.mjs';
 const dist = new URL('../dist/', import.meta.url).pathname;
 const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.png': 'image/png' };
 const srv = createServer(async (req, res) => {
-  let p = req.url.split('?')[0]; if (p.endsWith('/')) p += 'index.html';
-  try { const b = await readFile(join(dist, p)); res.setHeader('content-type', types[extname(p)] || 'application/octet-stream'); res.end(b); } catch { res.statusCode = 404; res.end(); }
-}).listen(0);
+  try {
+    const b = await readStaticFile(dist, req.url);
+    if (!b) { res.statusCode = 404; res.end(); return; }
+    const path = req.url.split('?')[0];
+    res.setHeader('content-type', types[extname(path.endsWith('/') ? path + 'index.html' : path)] || 'application/octet-stream');
+    res.end(b);
+  } catch { res.statusCode = 404; res.end(); }
+}).listen(0, '127.0.0.1');
+await once(srv, 'listening');
 const port = srv.address().port;
 const b = await chromium.launch();
 const p = await (await b.newContext({ viewport: { width: 1200, height: 630 }, colorScheme: 'light' })).newPage();
