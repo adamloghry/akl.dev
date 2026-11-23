@@ -1,0 +1,29 @@
+/* keys.css — the /keys page only (imported by src/pages/keys.astro). It reuses the landing page's
+   tokens, head and .rows grid from global.css; these rules add what a text-heavy page needs.
+   The page has no forest, so it sizes to its content instead of the landing page's fixed stage. */
+.keys.page{min-height:100vh;overflow:visible}
+.keys main{gap:32px}
+.keys .rows{row-gap:22px;margin:0}
+.keys dd{margin:0;min-width:0}
+.keys .kv>*+*{margin-top:8px}
+.keys .kv.links{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.keys .kv.links>*+*{margin-top:0}
+.keys .kv ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.keys code,.keys pre{font:inherit}
+.keys .fpr{display:block;font-weight:500;letter-spacing:.04em;word-spacing:.25em;overflow-wrap:anywhere}
+.keys .cmd{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;max-width:100%}
+.keys pre{margin:0;padding:8px 12px;border:1px solid var(--rule);border-radius:3px;white-space:pre-wrap;overflow-wrap:anywhere;min-width:0}
+.keys .lbl,.keys .note,.keys .sep,.keys time{color:var(--muted)}
+.keys .note{margin:0;max-width:58ch;text-wrap:pretty}
+.keys .copy{font:inherit;background:none;border:0;padding:6px 0;margin:-6px 0;cursor:pointer;color:var(--muted);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--muted) 55%,transparent);text-underline-offset:3px}
+.keys .copy:hover{color:var(--fg)}
+.keys .fpr-trees{display:block;width:100%;max-width:476px;height:auto;margin-top:14px}
+.keys .fpr-trees path{fill:var(--fg)}
+.keys .fpr-trees .ground{fill:var(--muted)}
+.keys .qr{width:148px;height:148px;display:block}
+/* Dark on light in both themes: many scanners cannot read an inverted code. */
+.keys .qr-bg{fill:#f6f5ec}
+.keys .qr-fg{fill:#1a1a1a}
+.keys .back{margin:0;padding-top:24px;border-top:1px solid var(--rule)}
+.keys .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media (max-width:600px){.keys .rows{grid-template-columns:1fr;row-gap:6px}.keys dd{margin-bottom:16px}}

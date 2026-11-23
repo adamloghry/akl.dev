@@ -1,0 +1,23 @@
+Identity manifest for Adam K. Loghry
+Canonical URL: https://akl.dev/identity.txt
+
+This file is signed with the OpenPGP key below. Each account listed here
+links back to https://akl.dev/keys. If an account is not listed, it is not me.
+
+Issued: 2026-11-23
+Expires: 2028-11-23
+
+Fingerprint: FC29FFFE9A03B48349577E78E00BC74D91815CAB
+Key: https://akl.dev/pgp.asc
+Email: adamloghry@pm.me
+
+Bluesky: @akl.dev
+Bluesky-DID: did:plc:u2hotgrxdf5rr3zqjubs2wsb
+Mastodon: @akl@hachyderm.io
+GitHub: https://github.com/adamloghry
+Signal: akl.07
+
+SSH-Signing: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIOpQr/jy4vIkGbnO3rW7oe1M6jnZgFVLr2hdjPVUmyx
+SSH-Auth: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIOpQr/jy4vIkGbnO3rW7oe1M6jnZgFVLr2hdjPVUmyx
+
+Previous-Fingerprint: none

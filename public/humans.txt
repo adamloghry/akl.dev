@@ -1,7 +1,7 @@
 /* TEAM */
     Owner: Adam K. Loghry
     Site: akl.dev
-    Contact: akl@akl.io
+    Contact: adam@loghry.org
     Location: Seattle, WA, USA
 
 /* THANKS */

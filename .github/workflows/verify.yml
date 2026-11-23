@@ -1,6 +1,12 @@
 name: Verify
 
-on: [push]
+on:
+  push:
+  # Expiry is a function of time: the build's identity check fails 30 days before the key, the
+  # signed manifest or security.txt runs out, so build weekly even when nothing is pushed.
+  schedule:
+    - cron: "17 15 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read

@@ -6,6 +6,7 @@ import '../styles/global.css';
 import '../styles/overrides.css';
 import font400 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url';
 import font500 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2?url';
+import { identity } from '../lib/identity';
 
 interface Props { title?: string; description?: string; noindex?: boolean; }
 const site = 'https://akl.dev';
@@ -14,7 +15,8 @@ const {
   description = 'Adam K. Loghry, Engineer in Seattle',
   noindex = false,
 } = Astro.props;
-const canonical = new URL(Astro.url.pathname, site).href;
+// build.format 'preserve' puts .html in the pathname; the served and canonical URL has none (/keys).
+const canonical = new URL(Astro.url.pathname.replace(/\.html$/, ''), site).href;
 
 const person = {
   '@context': 'https://schema.org',
@@ -23,7 +25,7 @@ const person = {
   givenName: 'Adam',
   familyName: 'Loghry',
   url: site + '/',
-  email: 'mailto:akl@akl.io',
+  email: 'mailto:adam@loghry.org',
   jobTitle: 'Senior Staff Site Reliability Engineer',
   worksFor: { '@type': 'Organization', name: 'Google', url: 'https://www.google.com/' },
   address: { '@type': 'PostalAddress', addressLocality: 'Seattle', addressRegion: 'WA', addressCountry: 'US' },
@@ -68,6 +70,7 @@ const person = {
   <link rel="me" href="https://hachyderm.io/@akl" />
   <link rel="me" href="https://bsky.app/profile/did:plc:u2hotgrxdf5rr3zqjubs2wsb" />
   <link rel="me" href="https://github.com/adamloghry" />
+  {identity && <link rel="pgpkey" type="application/pgp-keys" href="/pgp.asc" />}
   <!-- Theme before first paint: a stored override wins, else the system preference (handled by CSS). -->
   <script is:inline>
     (function(){try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();

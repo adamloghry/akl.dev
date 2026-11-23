@@ -7,7 +7,8 @@ Senior Staff SRE and SRE lead for GKE, based in Seattle.
 ## contact
 
 - signal: https://signal.me/#u/akl.07
-- email: akl@akl.io
+- email: adam@loghry.org
+- pgp: https://akl.dev/keys
 - bluesky: https://bsky.app/profile/did:plc:u2hotgrxdf5rr3zqjubs2wsb
 - mastodon: https://hachyderm.io/@akl
 - linkedin: https://linkedin.com/in/adamloghry

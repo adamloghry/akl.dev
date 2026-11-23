@@ -1,0 +1,4 @@
+# Published at https://akl.dev/allowed_signers so others can verify
+# SSH-signed commits and tags:
+#   git config gpg.ssh.allowedSignersFile <path-to-this-file>
+adam@loghry.org namespaces="git" <SSH-PUBLIC-KEY-LINE>
