@@ -85,3 +85,15 @@
 .forest.tab-hidden :is(.crow,.crow svg,.flake,.owl-eyes,.squatch svg){animation-play-state:paused !important}
 .forest.tab-hidden .mist{animation-play-state:running,paused !important}
 @media (prefers-reduced-motion: reduce){.forest .crows{display:none}}
+
+/* Link separators (owner, 2026-11-22). The handoff makes each "·" its own flex item, so a narrow screen can wrap with a
+   dot at the start or end of a line ("signal · email · pgp · bluesky ·" / "mastodon · linkedin"). Instead the markup's
+   .sep spans are hidden (they stay for unstyled readers) and every link after the first draws its dot in the gap to its
+   left, 12px either side as before (column-gap 12px + 1ch + 12px). A link that wraps to the start of a line carries its dot
+   past the left edge, which overflow-x:clip cuts off; since no dot follows a link, none can end a line. The 8px padding
+   that margin cancels moves the clip edge out past the focus ring (2px + 3px offset) but short of the dot. The extra
+   `main` outranks global.css whatever the bundle order. */
+main .rows .v{column-gap:calc(24px + 1ch);overflow-x:clip;padding:0 8px;margin:0 -8px}
+main .rows .v .sep{display:none}
+main .rows .v .sep + a{position:relative}
+main .rows .v .sep + a::before{content:"·" / "";position:absolute;right:100%;margin-right:12px;color:var(--muted);pointer-events:none}

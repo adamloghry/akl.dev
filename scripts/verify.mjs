@@ -80,6 +80,23 @@ for (const [w, h, scheme, label] of [[1440, 900, 'light', 'desktop-light'], [128
   ok('AC-A11Y-2 ' + label, r.minLink >= 24, `link targets ≥24px (min ${Math.round(r.minLink)})`);
   ok('AC-FOOT-1 ' + label, r.footInfo === 'none', 'build info collapsed by default');
   if (w < 600) ok('AC-LAYOUT-2 ' + label, r.toggle[2] <= 12 && r.toggle[3] >= w - 12, 'phone: toggle in top-right corner');
+  // AC-NAV-5: a wrapped contact/projects row never starts or ends a line with a separator (owner, overrides.css). Dots are
+  // drawn only before a link, so none can end a line; a link that starts a line must have its dot wholly past the clip edge,
+  // and every other dot must sit wholly inside it. The markup's .sep spans render nothing.
+  const s = await p.evaluate(() => [...document.querySelectorAll('.rows .v')].map(v => {
+    const box = v.getBoundingClientRect(), cs = getComputedStyle(v), edge = box.left + parseFloat(cs.borderLeftWidth);
+    const links = [...v.querySelectorAll(':scope > a')];
+    const lines = new Set(links.map(a => Math.round(a.getBoundingClientRect().top))).size;
+    const bad = links.slice(1).filter((a, i) => {
+      const pe = getComputedStyle(a, '::before'), right = a.getBoundingClientRect().left - parseFloat(pe.marginRight), left = right - parseFloat(pe.width);
+      const starts = Math.round(a.getBoundingClientRect().top) !== Math.round(links[i].getBoundingClientRect().top);
+      return pe.content === 'none' || (starts ? right > edge : left < edge);
+    }).map(a => a.textContent);
+    const seps = [...v.querySelectorAll('.sep')].filter(e => e.getClientRects().length > 0).length;
+    return { lines, bad, seps, clip: cs.overflowX };
+  }));
+  ok('AC-NAV-5 ' + label, s.length === 2 && s.every(x => x.bad.length === 0 && x.seps === 0 && x.clip === 'clip'),
+    `no separator starts or ends a line (lines ${s.map(x => x.lines).join('/')}${s.some(x => x.bad.length) ? '; bad: ' + s.flatMap(x => x.bad).join(', ') : ''})`);
   await p.click('#foot-btn');
   ok('AC-FOOT-2 ' + label, await p.evaluate(() => getComputedStyle(document.getElementById('foot-info')).display !== 'none'), 'hammer reveals build info');
   await p.click('#theme');
