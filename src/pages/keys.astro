@@ -1,0 +1,157 @@
+---
+// keys.astro — /keys: the OpenPGP key, the signed identity manifest and the accounts it vouches for.
+// Everything shown comes from src/data/identity.json (written by scripts/verify-identity.mjs from the
+// published key and manifest), so the page cannot disagree with the files it links to.
+import qrcode from 'qrcode-generator';
+import Base from '../layouts/Base.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import Colophon from '../components/Colophon.astro';
+import { identity } from '../lib/identity';
+import '../styles/keys.css';
+
+const field = (name: string) => identity?.manifest.fields[name]?.[0] ?? null;
+const sshSigning = field('ssh-signing'), sshAuth = field('ssh-auth'), age = field('age');
+const did = field('bluesky-did') ?? 'did:plc:u2hotgrxdf5rr3zqjubs2wsb';
+const previous = field('previous-fingerprint');
+
+// Key history. The first entry comes from the key itself; add a line here at each renewal or rotation.
+const history: { date: string; text: string }[] = identity ? [
+  { date: identity.created.slice(0, 10), text: 'Key created.' },
+] : [];
+
+const verify = [
+  'curl -s https://akl.dev/pgp.asc | gpg --import',
+  'curl -s https://akl.dev/identity.txt | gpg --verify',
+];
+
+// The fingerprint as a treeline: one conifer per hex digit, taller for a higher digit, in the same
+// ten groups of four as the text above it. Drawn at build time as one SVG path.
+let stand: { width: number; height: number; d: string } | null = null;
+if (identity) {
+  const slot = 10, gap = 8, ground = 60;
+  let d = '', x = 0;
+  [...identity.fingerprint].forEach((ch, i) => {
+    if (i && i % 4 === 0) x += gap;
+    const v = parseInt(ch, 16), h = 10 + v * 3.2, w = 2.6 + v * 0.1, cx = x + slot / 2;
+    d += `M${(cx - w).toFixed(1)} ${ground}L${cx} ${(ground - h).toFixed(1)}L${(cx + w).toFixed(1)} ${ground}z`;
+    x += slot;
+  });
+  stand = { width: x, height: ground + 2, d };
+}
+
+// QR code of OPENPGP4FPR:<fingerprint>, drawn at build time as one SVG path (no image, no request).
+let qr: { size: number; d: string } | null = null;
+if (identity) {
+  const code = qrcode(0, 'M');
+  code.addData(`OPENPGP4FPR:${identity.fingerprint}`, 'Alphanumeric');
+  code.make();
+  const n = code.getModuleCount(), quiet = 4;
+  let d = '';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (code.isDark(r, c)) d += `M${c + quiet} ${r + quiet}h1v1h-1z`;
+  qr = { size: n + 2 * quiet, d };
+}
+---
+<Base title="Keys — Adam Loghry" description="OpenPGP key, signed identity manifest and verified accounts of Adam K. Loghry." noindex={!identity}>
+  <div class="page keys">
+    <main>
+      <div class="head">
+        <header>
+          <h1>Adam K. Loghry</h1>
+          <p class="role">keys and identity</p>
+        </header>
+        <ThemeToggle />
+      </div>
+
+      {!identity && <p class="bio" id="keys-pending">Keys are not published yet. Until they are, reach me through the <a href="/">front door</a>.</p>}
+
+      {identity && <>
+        <p class="bio">This page is the root of trust for my accounts and keys. The <a href="/identity.txt">signed manifest</a> lists every one of them; anything not listed there is not me.</p>
+
+        <dl class="rows">
+          <dt class="k">fingerprint</dt>
+          <dd class="kv">
+            <code class="fpr" id="fpr">{identity.fingerprintGrouped}</code>
+            <button type="button" class="copy" data-copy={identity.fingerprint} aria-label="Copy fingerprint">copy</button>
+            {stand && <svg class="fpr-trees" viewBox={`0 0 ${stand.width} ${stand.height}`} role="img" aria-label="The fingerprint drawn as a line of trees: one tree per hex digit, taller for a higher digit."><path d={stand.d}></path><rect class="ground" y={stand.height - 2} width={stand.width} height="1"></rect></svg>}
+          </dd>
+
+          <dt class="k">status</dt>
+          <dd class="kv" id="keys-status">Signed on <time datetime={identity.manifest.issued}>{identity.manifest.issued}</time>, valid until <time datetime={identity.manifest.expires}>{identity.manifest.expires}</time>.</dd>
+
+          <dt class="k">download</dt>
+          <dd class="kv links">
+            <a href="/pgp.asc">pgp.asc</a><span class="sep" aria-hidden="true">·</span>
+            <a href="/identity.txt">identity.txt</a>
+            {identity.allowedSigners && <><span class="sep" aria-hidden="true">·</span><a href="/allowed_signers">allowed_signers</a></>}
+          </dd>
+
+          <dt class="k">verify</dt>
+          <dd class="kv">
+            {verify.map(cmd => (
+              <div class="cmd"><pre><code>{cmd}</code></pre><button type="button" class="copy" data-copy={cmd} aria-label={`Copy command: ${cmd}`}>copy</button></div>
+            ))}
+          </dd>
+
+          <dt class="k">email</dt>
+          <dd class="kv">
+            <ul>{identity.addresses.map(a => <li>{a.address}</li>)}</ul>
+            <p class="note">This is the address for encrypted mail. Proton Mail encrypts to it by itself; from anywhere else, use the key above.</p>
+          </dd>
+
+          <dt class="k">accounts</dt>
+          <dd class="kv">
+            <ul>
+              <li>bluesky <a rel="me" href={`https://bsky.app/profile/${did}`}>{field('bluesky') ?? '@akl.dev'}</a></li>
+              <li>mastodon <a rel="me" href="https://hachyderm.io/@akl">@akl@hachyderm.io</a></li>
+              <li>github <a rel="me" href="https://github.com/adamloghry">adamloghry</a></li>
+              <li>signal <span id="signal">akl.07</span></li>
+            </ul>
+            <p class="note">Signal has no profile to link back from. Comparing safety numbers with me is the real check.</p>
+          </dd>
+
+          {(sshSigning || sshAuth || age) && <>
+            <dt class="k">other keys</dt>
+            <dd class="kv">
+              {sshSigning && <div class="cmd"><pre><code><span class="lbl">ssh signing</span>{'\n'}{sshSigning}</code></pre><button type="button" class="copy" data-copy={sshSigning} aria-label="Copy SSH signing key">copy</button></div>}
+              {sshAuth && sshAuth !== sshSigning && <div class="cmd"><pre><code><span class="lbl">ssh auth</span>{'\n'}{sshAuth}</code></pre><button type="button" class="copy" data-copy={sshAuth} aria-label="Copy SSH authentication key">copy</button></div>}
+              {age && <div class="cmd"><pre><code><span class="lbl">age</span>{'\n'}{age}</code></pre><button type="button" class="copy" data-copy={age} aria-label="Copy age recipient">copy</button></div>}
+            </dd>
+          </>}
+
+          <dt class="k">use</dt>
+          <dd class="kv">The OpenPGP key is for encrypted mail to {identity.email}, and for signing the manifest. Git commits are signed with the SSH key. Private messaging goes through Signal.</dd>
+
+          <dt class="k">history</dt>
+          <dd class="kv">
+            <ul id="keys-history">{history.map(h => <li><time datetime={h.date}>{h.date}</time> {h.text}</li>)}</ul>
+            {previous && previous !== 'none' && <p class="note">Previous fingerprint: {previous}</p>}
+          </dd>
+
+          {qr && <>
+            <dt class="k">qr</dt>
+            <dd class="kv">
+              <svg class="qr" viewBox={`0 0 ${qr.size} ${qr.size}`} role="img" aria-label={`QR code of the OpenPGP fingerprint ${identity.fingerprintGrouped}`} shape-rendering="crispEdges"><rect class="qr-bg" width={qr.size} height={qr.size}></rect><path class="qr-fg" d={qr.d}></path></svg>
+            </dd>
+          </>}
+        </dl>
+
+        <p class="back"><a href="/">front door</a></p>
+        <span class="sr" role="status" id="copy-status"></span>
+      </>}
+    </main>
+    <Colophon />
+  </div>
+</Base>
+
+<script>
+  const status = document.getElementById('copy-status');
+  for (const btn of document.querySelectorAll<HTMLButtonElement>('button.copy')) {
+    btn.addEventListener('click', async () => {
+      let done = true;
+      try { await navigator.clipboard.writeText(btn.dataset.copy ?? ''); } catch { done = false; }
+      btn.textContent = done ? 'copied' : 'failed';
+      if (status) status.textContent = done ? 'Copied to clipboard' : 'Copy failed';
+      setTimeout(() => { btn.textContent = 'copy'; if (status) status.textContent = ''; }, 1600);
+    });
+  }
+</script>

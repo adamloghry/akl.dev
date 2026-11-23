@@ -19,5 +19,15 @@
     document.dispatchEvent(new CustomEvent('themechange', { detail: next }));
   });
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync);
+  // A page restored from the back/forward cache missed a theme change made on another page.
+  addEventListener('pageshow', e => {
+    if (!e.persisted) return;
+    let t: string | null = null;
+    try { t = localStorage.getItem('theme'); } catch (err) {}
+    if ((t !== 'light' && t !== 'dark') || t === root.getAttribute('data-theme')) return;
+    root.setAttribute('data-theme', t);
+    sync();
+    document.dispatchEvent(new CustomEvent('themechange', { detail: t }));
+  });
   sync();
 </script>

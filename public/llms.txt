@@ -2,7 +2,7 @@
 
 > Personal landing page of Adam K. Loghry (akl): Senior Staff SRE and SRE lead for GKE, based in Seattle. 18+ years in infrastructure at Google (Ads, GCE, GKE) and Amazon (Linux, IAM, EC2 Network Security). This site is a single page with contact links and pointers to code; a notes/blog section is planned.
 
-How to reach Adam: Signal (username akl.07), email akl@akl.io, Bluesky @akl.io, Mastodon @akl@hachyderm.io, LinkedIn adamloghry. Code lives on GitHub (adamloghry) and on a self-hosted forge at 16384.dev. Toys & experiments are at akl.run.
+How to reach Adam: Signal (username akl.07), email adam@loghry.org, Bluesky https://bsky.app/profile/did:plc:u2hotgrxdf5rr3zqjubs2wsb, Mastodon @akl@hachyderm.io, LinkedIn adamloghry. Code lives on GitHub (adamloghry) and on a self-hosted forge at 16384.dev. Toys & experiments are at akl.run.
 
 ## Pages
 

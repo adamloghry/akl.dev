@@ -3,7 +3,9 @@
 // Build date and short hash are resolved at build time:
 //   Cloudflare Pages exposes CF_PAGES_COMMIT_SHA; locally we fall back to git, then to "dev".
 // Phase 2: wrap the hash in <a href={`https://16384.dev/…/commit/${hash}`}> once the forge serves it.
+// Once the OpenPGP key is published, the last 16 hex characters of its fingerprint link to /keys.
 import { execSync } from 'node:child_process';
+import { identity, shortFingerprint } from '../lib/identity';
 const built = new Date().toISOString().slice(0, 10);
 let hash = (process.env.CF_PAGES_COMMIT_SHA || '').slice(0, 7);
 if (!hash) { try { hash = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { hash = 'dev'; } }
@@ -12,7 +14,7 @@ if (!hash) { try { hash = execSync('git rev-parse --short HEAD', { stdio: ['igno
   <button type="button" class="foot-btn" id="foot-btn" aria-expanded="false" aria-controls="foot-info" aria-label="Show build info">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4.5l5.5 5.5-2.5 2.5L11.5 7z"></path><path d="M11.5 7l-1.5 1.5L3.5 15 6 17.5l6.5-6.5L14 9.5"></path><path d="M16.5 3l2 2M18 8.5l2.5-2.5"></path></svg>
   </button>
-  <span class="foot-info" id="foot-info"><span>built <span id="built">{built}</span></span><span aria-hidden="true">·</span><span id="hash">{hash}</span></span>
+  <span class="foot-info" id="foot-info"><span>built <span id="built">{built}</span></span><span aria-hidden="true">·</span><span id="hash">{hash}</span>{identity && <><span aria-hidden="true">·</span><a href="/keys" id="foot-key" aria-label={`OpenPGP key ending ${shortFingerprint}`}>{shortFingerprint}</a></>}</span>
 </footer>
 
 <script>

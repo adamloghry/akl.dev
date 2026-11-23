@@ -17,3 +17,19 @@
   Cache-Control: public, max-age=3600
 /.well-known/atproto-did
   Content-Type: text/plain; charset=utf-8
+/.well-known/security.txt
+  Content-Type: text/plain; charset=utf-8
+# OpenPGP key discovery (WKD) and the identity files. Other origins must be able to fetch them (CORS),
+# and the WKD files are binary. Proof is the live curl checks in docs/identity-runbook.md, not this file.
+/.well-known/openpgpkey/*
+  Access-Control-Allow-Origin: *
+  Content-Type: application/octet-stream
+/pgp.asc
+  Access-Control-Allow-Origin: *
+  Content-Type: application/pgp-keys
+/identity.txt
+  Access-Control-Allow-Origin: *
+  Content-Type: text/plain; charset=utf-8
+/allowed_signers
+  Access-Control-Allow-Origin: *
+  Content-Type: text/plain; charset=utf-8

@@ -9,6 +9,8 @@
 node_modules/
 dist/
 .astro/
+# written by scripts/verify-identity.mjs before every build
+src/data/identity.json
 
 # devenv / direnv runtime artifacts
 .direnv/

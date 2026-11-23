@@ -6,7 +6,7 @@ import { once } from 'node:events';
 import { readFile, access } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import { inlineScriptHashes } from '../integrations/csp-hashes.mjs';
-import { readStaticFile } from './static-file.mjs';
+import { resolveStaticFile } from './static-file.mjs';
 const dist = new URL('../dist/', import.meta.url).pathname;
 const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.png': 'image/png', '.txt': 'text/plain', '.json': 'application/json', '.xml': 'application/xml', '.md': 'text/markdown' };
 const headersFile = await readFile(join(dist, '_headers'), 'utf8');
@@ -14,10 +14,10 @@ const csp = (headersFile.split(/\n(?=\S)/).find(b => b.startsWith('/*')) || '')
   .split('\n').map(l => l.trim()).find(l => l.startsWith('Content-Security-Policy:'))?.slice('Content-Security-Policy:'.length).trim() || '';
 const srv = createServer(async (req, res) => {
   try {
-    const b = await readStaticFile(dist, req.url);
-    if (!b) { res.statusCode = 404; res.end(); return; }
-    const path = req.url.split('?')[0];
-    res.setHeader('content-type', types[extname(path.endsWith('/') ? path + 'index.html' : path)] || 'application/octet-stream');
+    const file = await resolveStaticFile(dist, req.url);
+    if (!file) { res.statusCode = 404; res.end(); return; }
+    const b = await readFile(file);
+    res.setHeader('content-type', types[extname(file)] || 'application/octet-stream');
     if (csp) res.setHeader('content-security-policy', csp);
     res.end(b);
   } catch { res.statusCode = 404; res.end(); }
@@ -37,9 +37,9 @@ ok('AC-META-4', /name="color-scheme" content="light dark"/.test(html), 'color-sc
 ok('AC-META-5', /rel="alternate" type="text\/markdown"/.test(html) && /rel="describedby" href="\/llms.txt"/.test(html), 'llms.txt discovery links');
 ok('AC-COPY-1', /ADAM K\. LOGHRY|Adam K\. Loghry/.test(html), 'name has the middle initial');
 ok('AC-COPY-2', /EC2 Network Security/.test(html), 'bio text current');
-ok('AC-NAV-1', ['signal.me/#u/akl.07', 'mailto:akl@akl.io', 'bsky.app/profile/did:plc:u2hotgrxdf5rr3zqjubs2wsb', 'hachyderm.io/@akl', 'linkedin.com/in/adamloghry', 'github.com/adamloghry', '16384.dev', 'akl.run'].every(u => html.includes(u)), 'all 8 links present');
+ok('AC-NAV-1', ['signal.me/#u/akl.07', 'mailto:adam@loghry.org','bsky.app/profile/did:plc:u2hotgrxdf5rr3zqjubs2wsb', 'hachyderm.io/@akl', 'linkedin.com/in/adamloghry', 'github.com/adamloghry', '16384.dev', 'akl.run'].every(u => html.includes(u)), 'all 8 links present');
 ok('AC-NAV-2', !/\/notes/.test(html.replace(/<!--[\s\S]*?-->/g, '')), 'no writing row yet (comment only)');
-for (const f of ['index.html', '404.html']) {
+for (const f of ['index.html', '404.html', 'keys.html']) {
   const h = await readFile(join(dist, f), 'utf8');
   const missing = inlineScriptHashes(h).filter(x => !csp.includes(x));
   ok('AC-CSP-1 ' + f, csp !== '' && !csp.includes("'unsafe-inline'") && !csp.includes("'inline-script-hashes'") && missing.length === 0,
@@ -253,6 +253,25 @@ const pnw = p => p.evaluate(() => { const s = document.getElementById('stand'), 
 { const { p, ctx } = await page(1440, 900, 'light', '&rain=off&crows=on&sasquatch=on&snow=on', true);
   const a = await pnw(p), rain = await p.evaluate(() => getComputedStyle(document.querySelector('.rain')).display);
   ok('AC-PNW-5', a.crowsShown === 'none' && rain === 'none' && a.still === 1, 'reduced motion: no crows, no falling snow, sasquatch stands still');
+  await ctx.close(); }
+// AC-ID-5: the /keys page in a real browser, under the CSP. While the key is pending it shows the notice; once
+// published, the fingerprint is selectable text and its copy button puts the 40 hex characters on the clipboard.
+for (const [w, h, scheme] of [[1440, 900, 'light'], [320, 568, 'dark']]) {
+  const ctx = await b.newContext({ viewport: { width: w, height: h }, colorScheme: scheme, permissions: ['clipboard-read', 'clipboard-write'] });
+  const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.addInitScript(() => { window.__csp = []; document.addEventListener('securitypolicyviolation', e => window.__csp.push(e.violatedDirective + ' ' + (e.blockedURI || 'inline'))); });
+  await p.goto(base + '/keys.html'); await p.waitForTimeout(200);
+  const s = await p.evaluate(() => ({ csp: window.__csp, overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    pending: !!document.getElementById('keys-pending'), fpr: document.getElementById('fpr')?.textContent ?? '', copies: [...document.querySelectorAll('button.copy')].map(x => x.getAttribute('aria-label') || ''),
+    qr: document.querySelector('svg.qr')?.getAttribute('aria-label') ?? '' }));
+  let detail = 'pending notice shown', good = s.pending && s.fpr === '';
+  if (!s.pending) {
+    await p.click('#fpr + button.copy'); await p.waitForTimeout(100);
+    const label = await p.textContent('#fpr + button.copy'), clip = await p.evaluate(() => navigator.clipboard.readText());
+    good = /^([0-9A-F]{4} ){9}[0-9A-F]{4}$/.test(s.fpr) && clip === s.fpr.replace(/ /g, '') && label === 'copied' && s.copies.length >= 3 && s.copies.every(Boolean) && s.qr.includes(s.fpr);
+    detail = `fingerprint ${s.fpr} is text, copy button copies it, ${s.copies.length} labelled copy buttons, QR alt names the fingerprint`;
+  }
+  ok(`AC-ID-5 ${w}x${h}`, good && !s.overflowX && errs.length === 0 && s.csp.length === 0, `${detail}; no overflow, errors or CSP violations` + (errs.length || s.csp.length ? ` (${[...errs, ...s.csp].join('; ')})` : ''));
   await ctx.close(); }
 await b.close(); srv.close();
 console.log(fails ? `\n${fails} FAILED` : '\nall checks passed'); process.exit(fails ? 1 : 0);

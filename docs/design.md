@@ -56,7 +56,7 @@ the deltas from that handoff; where they conflict, this document wins.
 - **Bluesky by DID (owner decision, 2026-11-01; overrides handoff D13 `@akl.dev`).** The handle is
   still `@akl.io`, and moving to `@akl.dev` is optional, so every Bluesky link uses
   `https://bsky.app/profile/did:plc:u2hotgrxdf5rr3zqjubs2wsb`, which resolves under any handle.
-  `llms.txt` names the handle `@akl.io`. `AC-NAV-1` checks the DID URL.
+  `llms.txt` uses the same DID URL (it named the handle until 2026-11-21). `AC-NAV-1` checks the DID URL.
 - **No email reveal (owner decision, 2026-11-01; overrides handoff D13 "address revealed on
   hover/focus").** The reveal shifted the contact row on hover, so the `email` link carries no
   `.addr` span; it stays a plain `mailto:`. The `.mail .addr` rules in `global.css` stay (AC-REF-1)
@@ -184,6 +184,63 @@ the deltas from that handoff; where they conflict, this document wins.
 branch `trunk`); zone settings (docs/handoff/04 §2); custom domains; `www`/akl.io/adamloghry.com
 301 rules; Bluesky DNS TXT + handle switch; Mastodon field; Google Search Console; security.txt
 renewal reminder; the manual `AC-LIVE-*` / `AC-DOM-*` checklist with date columns.
+
+### 6. Keys and identity (owner request, 2026-11-21)
+Source: the identity spec bundle (kept out of the repo; its owner runbook lives on as
+`docs/identity-runbook.md`). akl.dev is the root of trust: one OpenPGP key, one clearsigned
+manifest of accounts and keys, a `/keys` page, and a build check. All static.
+
+- **The key (owner, 2026-11-22).** The key is the one Proton Mail made for `adamloghry@pm.me`,
+  the address for encrypted mail. No key is generated for this site. The owner exports the
+  private key from Proton once, keeps a copy in 1Password, and signs the manifest with it
+  locally. It has one address, a primary that signs, and no expiry, so the manifest's yearly
+  `Expires:` is the liveness signal. Proton serves key lookup for its own domain; this site
+  serves no WKD file unless the key one day carries an akl.dev address.
+
+- **Files.** `scripts/export-identity.sh <FPR>` writes `public/pgp.asc` (and a WKD tree for
+  akl.dev addresses, if the key has any); `scripts/sign-identity.sh` clearsigns
+  `identity/identity.src.txt` into `public/identity.txt` (local only, needs the private key).
+  Neither output is edited by hand. `scripts/identity-setup.sh` (`npm run identity:setup`) is a
+  question-and-answer wrapper: it imports the Proton export, compares its fingerprint with the
+  key Proton publishes, collects the SSH and age values, fills the manifest
+  (`scripts/fill-identity.mjs`), signs and checks.
+- **Build check.** `scripts/verify-identity.mjs` runs as npm `prebuild`, so Cloudflare, CI and
+  `nix build` all run it. It fails the build when the key, manifest, WKD files or `security.txt`
+  disagree, are badly signed, or expire within 30 days (a key with no expiry is accepted), and writes `src/data/identity.json`
+  (gitignored), which `src/lib/identity.ts` hands to the pages. `scripts/verify-identity.test.mjs`
+  covers it with throwaway keys.
+- **Pending state.** Until `public/pgp.asc` exists, `prebuild` sets `IDENTITY_PENDING=1`: `/keys`
+  shows a notice and is `noindex`, and the `pgp` link, the footer fingerprint and
+  `<link rel="pgpkey">` are not rendered. Once the key exists the same variable fails the build,
+  so it cannot be left behind.
+- **`/keys`** (`src/pages/keys.astro`, `src/styles/keys.css`): fingerprint as text with a copy
+  button and as a drawing (`svg.fpr-trees`: one conifer per hex digit, taller for a higher digit,
+  in the same ten groups of four; one build-time SVG path), manifest dates, downloads, verify commands, addresses, `rel="me"` account links, SSH
+  and age keys, purpose, history, and a build-time inline SVG QR code of `OPENPGP4FPR:<fpr>`
+  (always dark on light, so scanners can read it in the dark theme). No forest: it is a text
+  page. `build.format: 'preserve'` emits `keys.html`, served at `/keys` with no redirect.
+- **Landing page.** A `pgp` link after `email` in the contact row, and the last 16 hex
+  characters of the fingerprint inside the colophon reveal, both linking to `/keys`.
+- **Checks.** `AC-ID-1` rel="me" and key links on every page; `AC-ID-2` pages match the published
+  files; `AC-ID-3` `_headers` rules; `AC-ID-4` no mention of the retired domain in `dist/`;
+  `AC-ID-5` `/keys` in a browser under the CSP, including the copy button.
+
+Owner decisions that differ from the bundle's README:
+- **Addresses.** The page's contact address is `adam@loghry.org`. The address for encrypted
+  mail is `adamloghry@pm.me`, shown only on `/keys` and in the manifest, never on the landing
+  page, `llms.txt`, `humans.txt` or `security.txt`. The export and the check were changed from
+  the bundle's versions: no akl.dev address is required, and the WKD tree must be empty when the
+  key has none. `wkd-hash.mjs` is the bundle's, unchanged.
+- **This site serves keys for akl.dev addresses only.** Nothing for another domain is built,
+  served or pointed here; the check fails on any file in the WKD tree that is not for an akl.dev
+  address on the key.
+- **Webfinger stays a redirect** (`_redirects`, `AC-NAV-3`), not a copied JSON file.
+- **`atproto-did` stays** alongside the DNS TXT record.
+- **Bluesky `rel="me"` stays the DID URL**, not `bsky.app/profile/akl.dev`.
+- **The retired domain** is removed from everything shipped (`AC-ID-4`); `docs/` still describes
+  its redirects.
+- **Superseded on 2026-11-22:** hardware tokens, a key generated for the site with addresses at
+  akl.dev, loghry.org and the old domain, and hand-off bundles for those domains.
 
 ## Out of scope
 `/notes`, the colophon commit link (Phase 2), akl.run content, per-visit OG images.

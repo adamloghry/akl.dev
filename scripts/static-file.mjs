@@ -1,5 +1,5 @@
 import { readFile, realpath } from 'node:fs/promises';
-import { isAbsolute, relative, resolve, sep } from 'node:path';
+import { extname, isAbsolute, relative, resolve, sep } from 'node:path';
 
 const within = (root, file) => {
   const rel = relative(root, file);
@@ -8,7 +8,9 @@ const within = (root, file) => {
 
 // Resolve a request only to a real file in dist. Check both the lexical path and its
 // real path so encoded parent segments and symlinks cannot escape the served tree.
-export async function readStaticFile(dist, requestUrl) {
+// Like the production host, a path without an extension that names no file falls back
+// to <path>.html (so /keys serves keys.html). Returns the real path, or null.
+export async function resolveStaticFile(dist, requestUrl) {
   const raw = requestUrl?.split('?')[0] ?? '';
   if (!raw.startsWith('/') || raw.startsWith('//')) return null;
 
@@ -20,7 +22,16 @@ export async function readStaticFile(dist, requestUrl) {
   const root = await realpath(dist);
   const file = resolve(root, '.' + pathname);
   if (!within(root, file)) return null;
-  const actual = await realpath(file);
+  let actual;
+  try { actual = await realpath(file); } catch (err) {
+    if (err.code !== 'ENOENT' || extname(file) !== '') throw err;
+    actual = await realpath(file + '.html');
+  }
   if (!within(root, actual)) return null;
-  return readFile(actual);
+  return actual;
+}
+
+export async function readStaticFile(dist, requestUrl) {
+  const actual = await resolveStaticFile(dist, requestUrl);
+  return actual && readFile(actual);
 }

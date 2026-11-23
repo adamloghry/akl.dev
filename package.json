@@ -8,14 +8,19 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "prebuild": "node scripts/verify-identity.mjs",
     "build": "astro build",
+    "identity:check": "node scripts/verify-identity.mjs",
+    "identity:export": "scripts/export-identity.sh",
+    "identity:sign": "scripts/sign-identity.sh",
+    "identity:setup": "scripts/identity-setup.sh",
     "preview": "astro preview",
     "check": "astro check",
     "og": "node scripts/og.mjs",
     "profile-forest": "node scripts/profile-forest.mjs",
     "pin-playwright": "node scripts/pin-playwright.mjs",
     "test:bombadil": "node scripts/bombadil.mjs",
-    "verify": "node --test scripts/static-file.test.mjs && node scripts/verify-static.mjs && node scripts/verify.mjs"
+    "verify": "node --test scripts/static-file.test.mjs scripts/verify-identity.test.mjs scripts/fill-identity.test.mjs && node scripts/verify-static.mjs && node scripts/verify.mjs"
   },
   "devDependencies": {
     "@antithesishq/bombadil": "0.8.0",
@@ -23,7 +28,9 @@
     "@astrojs/sitemap": "^3.7.4",
     "@fontsource/ibm-plex-mono": "^5.3.0",
     "astro": "^7.4.13",
+    "openpgp": "^6.3.3",
     "playwright": "1.64.1",
+    "qrcode-generator": "^2.0.4",
     "typescript": "^6.0.3"
   }
 }

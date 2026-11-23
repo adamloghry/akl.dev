@@ -10,5 +10,7 @@ export default defineConfig({
   output: 'static',
   trailingSlash: 'ignore',
   integrations: [sitemap(), cspHashes()],
-  build: { inlineStylesheets: 'never' },
+  // format 'preserve' emits keys.astro as keys.html, which Cloudflare serves at /keys with no redirect
+  // (Mastodon's rel="me" check fetches exactly https://akl.dev/keys).
+  build: { inlineStylesheets: 'never', format: 'preserve' },
 });

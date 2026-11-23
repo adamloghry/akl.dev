@@ -56,7 +56,7 @@ Run against the deployed site `https://akl.dev`. Use `?seed=1107` for reproducib
 - [ ] AC-LIVE-3: Scrolling moves the text; the forest stays put (desktop and phone). date: ____
 - [ ] AC-LIVE-4: Theme follows the OS with no override; the toggle overrides; reload keeps the override; clearing `localStorage.theme` returns to following the OS. No flash of wrong theme on reload. date: ____
 - [ ] AC-LIVE-5: At Seattle night, dark mode shows the crescent moon upper-right; in light mode it never shows. date: ____
-- [ ] AC-LIVE-6: Hovering or keyboard-focusing `email` does not reveal the address or shift the contact row; the link opens a `mailto:akl@akl.io` (owner override of D13, `docs/design.md` section 3). date: ____
+- [ ] AC-LIVE-6: Hovering or keyboard-focusing `email` does not reveal the address or shift the contact row; the link opens a `mailto:adam@loghry.org` (owner override of D13, `docs/design.md` section 3). date: ____
 - [ ] AC-LIVE-7: Tab order: toggle → signal → email → bluesky → mastodon → linkedin → github → 16384.dev → toys → hammer. Focus ring visible on each. date: ____
 - [ ] AC-LIVE-8: Print preview: no forest, URLs shown after link text, colophon visible. date: ____
 - [ ] AC-LIVE-9: iOS Safari: forest sits under the text at load; rotating the phone re-fits. date: ____
@@ -75,7 +75,7 @@ Run against the deployed site `https://akl.dev`. Use `?seed=1107` for reproducib
 
 ## 6. Identity (Bluesky and Mastodon)
 
-The site links Bluesky by DID (`bsky.app/profile/did:plc:u2hotgrxdf5rr3zqjubs2wsb`), which resolves whatever the handle is, and `llms.txt` names the handle `@akl.io`. **Switching the handle to `@akl.dev` is optional.** If you skip it, leave the four Bluesky items below undated. If you do switch, also change `Bluesky @akl.io` → `@akl.dev` in `public/llms.txt`; the links need no change. `/.well-known/atproto-did` ships either way, and it's harmless until the handle points at akl.dev.
+The site links Bluesky by DID (`bsky.app/profile/did:plc:u2hotgrxdf5rr3zqjubs2wsb`), which resolves whatever the handle is, and so does `llms.txt`. The signed identity manifest (`docs/identity-runbook.md`) names the handle `@akl.dev`, so the switch below is now part of publishing the key; the links need no change. `/.well-known/atproto-did` ships either way, and it's harmless until the handle points at akl.dev.
 
 - [ ] (optional) Bluesky app → Settings → Account → Handle → "I have my own domain". It shows the `did:plc:…` value; expected `did:plc:u2hotgrxdf5rr3zqjubs2wsb`. date: ____
 - [ ] (optional) DNS on the `akl.dev` zone: `TXT  _atproto  "did=did:plc:u2hotgrxdf5rr3zqjubs2wsb"` (DNS only, not proxied). date: ____
@@ -113,6 +113,10 @@ Note: the rule expression must cover every hostname that has a proxied placehold
 - [ ] AC-DOM-7: `https://akl.dev/.well-known/security.txt` `Expires` is in the future (and a reminder exists to renew it). date: ____
 - [ ] Playwright bump, after any `flake.lock` update: run `npm run pin-playwright` (needs nix; it reads nixpkgs' `playwright-driver.version`, runs `npm install --save-dev --save-exact playwright@<v>` and prints old -> new). `package.json` must show `"playwright": "<v>"`, exact with no caret. If a Renovate `flake.lock` PR fails `checks.playwright-pin`, check out that PR's branch, run `npm run pin-playwright`, and commit `package.json` and `package-lock.json`. date: ____
 
-## 10. Decommission
+## 10. Keys and identity
+
+The OpenPGP key, the signed manifest, `/keys`, and the platform back-links have their own runbook: `docs/identity-runbook.md` (exporting the key from Proton, the setup wizard, publishing, live checks, yearly renewal, recovery). The build fails 30 days before the key, the manifest or `security.txt` expires, and `verify.yml` builds weekly so that is noticed without a push. GitHub disables scheduled workflows after 60 days without repository activity; re-enable it from the Actions tab if that happens.
+
+## 11. Decommission
 
 - [ ] One week after cutover, with clean logs on `akl.dev`, delete the old akl.io Pages/Workers project. Keep the repo. date: ____
