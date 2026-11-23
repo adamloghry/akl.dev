@@ -65,7 +65,7 @@ if (identity) {
       {!identity && <p class="bio" id="keys-pending">Keys are not published yet. Until they are, reach me through the <a href="/">front door</a>.</p>}
 
       {identity && <>
-        <p class="bio">This page is the root of trust for my accounts and keys. The <a href="/identity.txt">signed manifest</a> lists every one of them; anything not listed there is not me.</p>
+        <p class="bio">This page is the root of trust for my keys and verified accounts. The <a href="/identity.txt">signed manifest</a> lists the accounts you can check cryptographically. I have others that aren't listed, so if you need to be sure it's me, reach me through one of these, or confirm through one first.</p>
 
         <dl class="rows">
           <dt class="k">fingerprint</dt>

@@ -2,10 +2,12 @@ Identity manifest for Adam K. Loghry
 Canonical URL: https://akl.dev/identity.txt
 
 This file is signed with the OpenPGP key below. Each account listed here
-links back to https://akl.dev/keys. If an account is not listed, it is not me.
+links back to https://akl.dev/keys. These are the accounts I vouch for
+cryptographically; I have others that are not listed. If it matters that
+you are reaching me, use an account listed here, or confirm through one.
 
 Issued: 2026-11-23
-Expires: 2028-11-23
+Expires: 2027-11-23
 
 Fingerprint: FC29FFFE9A03B48349577E78E00BC74D91815CAB
 Key: https://akl.dev/pgp.asc
