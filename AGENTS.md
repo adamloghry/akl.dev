@@ -151,7 +151,7 @@ Headers live in `public/_headers`, never in `<meta http-equiv>`. There is no
 - Copy changes must also update `public/index.html.md` (AC-COPY-3). Keep
   `llms.txt` and `humans.txt` consistent.
 - `public/.well-known/security.txt` `Expires` must stay under a year ahead;
-  renew before 2027-09-01.
+  renew before 2027-10-24 (the build fails from then, 30 days out).
 - Bluesky is linked by DID (`bsky.app/profile/did:plc:u2hotgrxdf5rr3zqjubs2wsb`)
   in the page, `rel="me"`, JSON-LD and `index.html.md`, because the handle is
   still `@akl.io` and switching to `@akl.dev` is optional. Don't "fix" these

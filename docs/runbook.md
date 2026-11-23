@@ -109,7 +109,7 @@ Note: the rule expression must cover every hostname that has a proxied placehold
 
 ## 9. Recurring
 
-- [ ] security.txt renewal: `Expires: 2027-09-30` in `public/.well-known/security.txt`. Create a calendar reminder to renew before 2027-09-01; `Expires` must always be less than a year in the future. date: ____
+- [ ] security.txt renewal: `Expires: 2027-11-23` (same day as the identity manifest) in `public/.well-known/security.txt`. Create a calendar reminder to renew before 2027-10-24; `Expires` must always be less than a year in the future. date: ____
 - [ ] AC-DOM-7: `https://akl.dev/.well-known/security.txt` `Expires` is in the future (and a reminder exists to renew it). date: ____
 - [ ] Playwright bump, after any `flake.lock` update: run `npm run pin-playwright` (needs nix; it reads nixpkgs' `playwright-driver.version`, runs `npm install --save-dev --save-exact playwright@<v>` and prints old -> new). `package.json` must show `"playwright": "<v>"`, exact with no caret. If a Renovate `flake.lock` PR fails `checks.playwright-pin`, check out that PR's branch, run `npm run pin-playwright`, and commit `package.json` and `package-lock.json`. date: ____
 
