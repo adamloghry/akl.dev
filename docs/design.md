@@ -162,6 +162,12 @@ the deltas from that handoff; where they conflict, this document wins.
 - **Role line (owner, 2026-11-11; overrides the role copy in handoff D12).** "Senior Staff SRE and
   SRE lead for GKE, based in Seattle" on the page, in `index.html.md` and in `llms.txt`. The
   GitHub profile README spells out Google Kubernetes Engine; the site uses the short form.
+- **Link separators (owner, 2026-11-22; overrides the handoff's `.sep` flex items).** On a narrow
+  screen a wrapped contact or projects row never starts or ends a line with a "·". The `.sep` spans
+  stay in the markup for unstyled readers but are hidden; each link after the first draws its dot
+  in the gap to its left (same 12px + 1ch + 12px spacing), and the row clips its left edge
+  (`overflow-x: clip`, padded out past the focus ring) so a dot that wraps to a line start is cut
+  off. Styles are in `overrides.css`. `AC-NAV-5` (browser, every layout viewport).
 - **Fonts.** Import only `@fontsource/ibm-plex-mono/latin-400.css` and `latin-500.css`.
   `AC-PERF-1`: no non-latin `ibm-plex-mono-*.woff2` in `dist/`.
 - **webfinger.** `public/_redirects`:
